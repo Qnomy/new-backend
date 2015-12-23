@@ -6,6 +6,6 @@ var usersController = require('../controllers/users');
 var statusController = require('../controllers/status');
 
 module.exports = function (app) {
-    app.use('/status',statusController);
+    app.use('',statusController);
     app.use('/auth/v1',usersController);
 };

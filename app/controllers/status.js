@@ -8,7 +8,7 @@ var router = express.Router();
 
 var sinceTime = moment();
 
-router.get('/simple', function (req, res){
+router.get('/', function (req, res){
     var status = {server:"scarlett", alive: true, since:sinceTime, inner_services: config.status};
     console.log("status called.");
     res.json(status);

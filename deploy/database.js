@@ -2,6 +2,10 @@
  * Created by alan on 12/20/15.
  */
 
+use content_db
+db.createCollection("content_to_locate")
+db.content_to_locate.createIndex( { _id: "hashed" } )
+
 /*
 
 use user_db

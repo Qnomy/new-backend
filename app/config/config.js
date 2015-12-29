@@ -34,5 +34,25 @@ module.exports = {
             user_login_topic: lookup('kafka.topic.login', process.env.KAFKA_LOGIN_TOPIC, "user_login")
         }
     },
-    status: {}
+    status: {},
+    rest_api: {
+        social_validation_url: {
+            facebook: "https://graph.facebook.com/me",
+            twitter: "https://graph.facebook.com/me",
+            instagram: "https://graph.facebook.com/me"
+        },
+        default_config: {
+            requestConfig:{
+                timeout:2000, //request timeout in milliseconds
+                noDelay:true, //Enable/disable the Nagle algorithm
+                keepAlive:true, //Enable/disable keep-alive functionalityidle socket.
+                keepAliveDelay:1000 //and optionally set the initial delay before the first keepalive probe is sent
+            },
+            responseConfig:{
+                timeout:2000 //response timeout
+            }
+        }
+    }
+
+
 };

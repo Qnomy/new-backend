@@ -1,7 +1,7 @@
 /**
  * Created by alan on 12/17/15.
  */
-
+var express = require('express');
 var usersController = require('../controllers/users');
 var statusController = require('../controllers/status');
 
@@ -28,30 +28,26 @@ module.exports = function (app) {
 
     // Login methods.
     router.post('/login-social/facebook', socialFacebookMiddlewares, function (req, res){
-        loginSocialController(req, res, AccountTypes.Facebook);
+        usersController.login_social(req, res, AccountTypes.Facebook);
     });
 
     router.post('/login-social/twitter', socialTwitterMiddlewares, function (req, res){
-        loginSocialController(req, res, AccountTypes.Twitter);
+        usersController.login_social(req, res, AccountTypes.Twitter);
     });
 
     router.post('/login-social/instagram', socialInstagramMiddlewares, function (req, res){
-        loginSocialController(req, res, AccountTypes.Instagram);
+        usersController.login_social(req, res, AccountTypes.Instagram);
     });
 
     // Gets a user by its identifier and by its account type and social id.
     router.get('/user/:uid', authorizationMiddlewareList, function (req, res){
-        getUserController(req, res, { '_id': req.params.uid });
+        usersController.get_user(req, res, { '_id': req.params.uid });
     });
 
     router.get('/user/:accountType/:socialId', authorizationMiddlewareList, function (req, res){
-        getUserController(req, res, { 'accounts.social_id': req.params.socialId, 'accounts.type': req.params.accountType });
+        usersController.get_user(req, res, { 'accounts.social_id': req.params.socialId, 'accounts.type': req.params.accountType });
     });
 
-// Token management.
-    router.post('/refresh-token', refreshTokenController);
-
-    //module.exports = router;
 
     app.use('',statusController);
     app.use('/auth/v1',router);

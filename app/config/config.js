@@ -38,7 +38,7 @@ module.exports = {
     rest_api: {
         social_validation_url: {
             facebook: "https://graph.facebook.com/me",
-            twitter: "https://graph.facebook.com/me",
+            twitter: "https://api.twitter.com/1.1/users/show.json",
             instagram: "https://graph.facebook.com/me"
         },
         default_config: {

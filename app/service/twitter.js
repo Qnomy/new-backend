@@ -1,5 +1,5 @@
 /**
- * Created by alan on 12/27/15.
+ * Created by alan on 12/31/15.
  */
 
 var config = require('../config/config');
@@ -8,7 +8,7 @@ var httpClient = new RestClient();
 
 module.exports = {
     validate: function (token, cb){
-        var queryUrl = config.rest_api.social_validation_url.facebook;
+        var queryUrl = config.rest_api.social_validation_url.twitter;
         var args = config.rest_api.default_config;
         args.parameters = { access_token: token};
         httpClient.get(queryUrl, args, function(data, response){

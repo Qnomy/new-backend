@@ -45,8 +45,6 @@ function validateToken(req, res, user, criteria, validateExpiration, cb){
     }
 }
 
-
-
 /**
  * Internal function that validates the token given by parameter.
  * @param user

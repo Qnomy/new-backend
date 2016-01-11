@@ -26,28 +26,30 @@ module.exports = function (app) {
     /* field dependencies */
     var router = express.Router();
 
-    // Login methods.
-    router.post('/login-social/facebook', socialFacebookMiddlewares, function (req, res){
-        usersController.login_social(req, res, AccountTypes.Facebook);
+    /* Create a User profile. */
+    router.post('/register',usersController.register);
+    router.post('/login',usersController.login);
+
+    /* Append social accounts to the user. */
+    router.post('/accounts/facebook',function(req, res){
+        usersController.addSocialAccount(req, res, AccountTypes.Facebook);
     });
 
-    router.post('/login-social/twitter', socialTwitterMiddlewares, function (req, res){
-        usersController.login_social(req, res, AccountTypes.Twitter);
+    router.post('/accounts/twitter',function(req, res){
+        usersController.addSocialAccount(req, res, AccountTypes.Twitter);
     });
 
-    router.post('/login-social/instagram', socialInstagramMiddlewares, function (req, res){
-        usersController.login_social(req, res, AccountTypes.Instagram);
+    router.post('/accounts/instagram',function(req, res){
+        usersController.addSocialAccount(req, res, AccountTypes.Instagram);
     });
 
-    // Gets a user by its identifier and by its account type and social id.
-    router.get('/user/:uid', authorizationMiddlewareList, function (req, res){
-        usersController.get_user(req, res, { '_id': req.params.uid });
+    router.get('/user/:uid', function (req, res){
+        usersController.getUser(req, res, { '_id': req.params.uid });
     });
 
-    router.get('/user/:accountType/:socialId', authorizationMiddlewareList, function (req, res){
-        usersController.get_user(req, res, { 'accounts.social_id': req.params.socialId, 'accounts.type': req.params.accountType });
+    router.get('/user/:accountType/:socialId', function (req, res){
+        usersController.getUser(req, res, { 'accounts.social_id': req.params.socialId, 'accounts.type': req.params.accountType });
     });
-
 
     app.use('',statusController);
     app.use('/auth/v1',router);

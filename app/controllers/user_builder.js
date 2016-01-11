@@ -9,10 +9,150 @@ var express = require('express');
 var hat = require('hat');
 
 /* Internal dependencies. */
-var producer = require('../config/kafka');
 var config = require('../config/config');
 var UserHandler = require('../models/user');
-var facebookService = require('../service/facebook');
+var PhoneRegHandler = require('../models/phone_register');
+var jwt = require('jsonwebtoken');
+
+function formatNumber(numbers, split){
+    var iterations = Math.floor(numbers.length/split);
+    var output="";
+    var start = 0;
+    var end = start+split;
+    for (var x=0;x<iterations;x++){
+        if (output.length != 0){
+            output += " ";
+        }
+        output += numbers.substring(start, end);
+        start = end;
+        end += split;
+    }
+    return output;
+}
+
+function generateRandomNumber(low, high, length){
+    var numbers = new Array(length);
+    for (var i = 0; i < numbers.length; i++) {
+        numbers[i] = _randomIntInc(low,high)
+    }
+    return numbers.toString().replace(/,/g,"");
+}
+
+function _randomIntInc (low, high) {
+    return Math.floor(Math.random() * (high - low + 1) + low);
+}
+
+/********************************************************************************************************/
+/*                                          Token builder                                               */
+/********************************************************************************************************/
+
+/**
+ * Response the created user entity to the client.
+ * @param req The request object from where we need the information from the request.
+ * @param res The response object used to response the information to the client.
+ * @param err An error variable to be evaluated to see what to answer to the client.
+ * @param user The user we stored previously.
+ */
+function buildTokens(user, cb){
+    // Generate two tokens:
+    // a. An out of date token that will be exchanged on every call.
+    // b. A refresh token that has no out of date.
+    var dailyTokenPayload = {
+        uid: user.uid,
+        role: user.role,
+        token_type: config.tokenType.dailyToken
+    };
+    var refreshTokenPayload = {
+        uid: user.uid,
+        role: user.role,
+        token_type: config.tokenType.refreshToken
+    };
+
+    jwt.sign(dailyTokenPayload, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(dailyToken) {
+        jwt.sign(refreshTokenPayload, config.jwt_token.refresh_secret, config.jwt_token.options_refresh, function(refreshToken) {
+            cb(null, {
+                token: dailyToken,
+                refreshToken: refreshToken
+            });
+        });
+    });
+
+}
+
+/********************************************************************************************************/
+/*                                          Phone registry builder                                      */
+/********************************************************************************************************/
+
+/**
+ * Builds a phone registry entity according to the role specified.
+ * If the role of the phone entry does not correspond with a caller that its an admin, we return an error to the user.
+ * @param req
+ * @param res
+ * @param cb
+ */
+function buildPhoneRegisterEntity(req, res, user, cb){
+    var body = req.body;
+    var caller = req.params.user_caller
+    if (body.role == UserHandler.RoleTypes.Admin){
+        if (!caller || caller.role != UserHandler.RoleTypes.Admin){
+            cb({server:config.service_friendly_name, http_status:401, status:{ message: "You dont have permissions to execute such an action." }});
+            return;
+        }
+    }
+    var phoneRegister = new PhoneRegHandler.PhoneRegModel();
+    phoneRegister.phone_number = body.phone_number;
+    phoneRegister.code = generateRandomNumber(0,9,config.reg_code.lenght,config.reg_code.split);
+    phoneRegister.role = body.role;
+    if (user){
+        phoneRegister.role = user.role;
+        phoneRegister.uid = user.id ;
+    }
+    cb(null, phoneRegister);
+}
+
+/********************************************************************************************************/
+/*                                          User account builder                                        */
+/********************************************************************************************************/
+
+
+/**
+ * Method in charge of building a user entity based on a request DTO.
+ * @param user A user that may be existing before.
+ * @param requestDto
+ * @param cb
+ */
+function buildUserEntity(user, phoneRegister, cb){
+    // only and if its the first time, we set up the user role, otherwise we just bypass it.
+    if (!user){
+        user = new UserHandler.UserModel();
+        user.role = phoneRegister.role;
+        user.phone_number = phoneRegister.phone_number;
+    }
+    // TODO: Fill in the device info.
+    if (cb != null){
+        cb(null,user);
+    }
+}
+
+/**
+ * Method in charge of building a user entity based on a request DTO.
+ * @param user A user that may be existing before.
+ * @param requestDto
+ * @param cb
+ */
+function buildUserToken(user, phoneRegister, cb){
+    if (!user){
+        user = new UserHandler.UserModel();
+    }
+    user.phone_number = phoneRegister.phone_number;
+    if (cb != null){
+        cb(user);
+    }
+}
+
+/********************************************************************************************************/
+/*                                          Account builder                                             */
+/********************************************************************************************************/
 
 
 function buildAccount(accountType, requestBody){
@@ -57,28 +197,7 @@ function buildInstagram(requestBody){
     return { };
 }
 
-/**
- * Method in charge of building a user entity based on a request DTO.
- * @param user A user that may be existing before.
- * @param requestDto
- * @param cb
- */
-function buildUserEntity(user, requestDto, cb){
-    if (user == null){
-        user = new UserHandler.UserModel();
-    }
-    user.latitude = requestDto.latitude;
-    user.longitude = requestDto.longitude;
-    user.token = hat();
-    user.token_refresh = hat();
-    user.token_expiration = (new Date()).getTime() + config.tokenValidTime;
-    user.display_name = requestDto.display_name;
-    user.display_pic = requestDto.display_pic;
-    user.last_login = (new Date()).getTime();
-    if (cb != null){
-        cb(user);
-    }
-}
+
 
 /**
  * Method in charge of building an account entity.
@@ -124,6 +243,12 @@ function attachAccountToUserEntity(user, account, cb){
     }
 }
 
+
+/********************************************************************************************************/
+/*                                              Method exports                                          */
+/********************************************************************************************************/
+
+
 module.exports = {
     buildAccount: buildAccount,
     buildFacebookAccount: buildFacebookAccount,
@@ -131,5 +256,10 @@ module.exports = {
     buildInstagram:buildInstagram,
     buildUserEntity: buildUserEntity,
     buildAccountEntity: buildAccountEntity,
-    attachAccountToUserEntity: attachAccountToUserEntity
+    attachAccountToUserEntity: attachAccountToUserEntity,
+    buildPhoneRegisterEntity: buildPhoneRegisterEntity,
+    generateRandomNumber: generateRandomNumber,
+    formatNumber:formatNumber,
+    randomIntInc: _randomIntInc,
+    buildTokens: buildTokens
 }

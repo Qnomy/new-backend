@@ -3,6 +3,7 @@
  */
 
 var mongoose = require('mongoose');
+var config = require('../config/config');
 
 var accountSchema = mongoose.Schema({
     type: Number,
@@ -13,9 +14,7 @@ var accountSchema = mongoose.Schema({
 });
 
 var userSchema = mongoose.Schema({
-    token: String,
-    token_refresh: String,
-    token_expiration: Number,
+    phone_number: String,
     display_name: String,
     display_pic: String,
     deviceInfo: {},
@@ -23,33 +22,30 @@ var userSchema = mongoose.Schema({
     last_login: Date,
     active: {type: Boolean, default: true },
     role: {type: Number, default: 1 },
-    accounts: [accountSchema],
-    latitude: Number,
-    longitude: Number
+    accounts: [accountSchema]
 });
 
-userSchema.index({ token: 1 });
+userSchema.index({ phone_number: 1 }, { unique: true });
 userSchema.index({ "accounts.social_id": 1, "accounts.type": 1 }, { unique: true });
+
 
 /* Model definition */
 var accountModel = mongoose.model('Account', accountSchema);
 var userModel = mongoose.model('User', userSchema);
-
 
 /**
  * Method in charge of finding a user based on the criteria passed by parameter.
  * @param criteria The criteria object passed by parameter.
  * @param cb The callback method that will be executed after the search finishes.
  */
-function findUserBy(criteria, cb){
-    UserHandler.UserModel.findOne(criteria,
+function findUserBy(req, res, criteria, cb){
+    userModel.findOne(criteria,
         function (err, user){
             if (err){
-                res.status(500).json({server:"scarlett", http_status:500, status:{ message: "There was a problem trying to find the user, please try again later." }});
-                return;
+                err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem trying to find the user, please try again later." }, original: err};
             }
             if (cb){
-                cb(user);
+                cb(err, user);
             }
         }
     )
@@ -63,7 +59,7 @@ function findUserBy(criteria, cb){
 function findUserByOrResult(criteria,cb){
     findUserBy(criteria, function(user){
         if (!user) {
-            res.status(404).json({server: "scarlett", http_status: 500, status: {message: "The user was not found."}});
+            res.status(404).json({server: config.service_friendly_name, http_status: 500, status: {message: "The user was not found."}});
             return;
         }
         if (cb){
@@ -80,8 +76,7 @@ function findUserByOrResult(criteria,cb){
 function saveUserEntity(user, cb){
     user.save(function(err){
         if (err){
-            res.status(500).json({server:"scarlett", http_status:500, status:{ message: "There was a problem saving the user, please try again later." }});
-            return;
+            err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem saving the user, please try again later.", original: err}}
         }
         if (cb){
             cb(err, user);
@@ -106,4 +101,5 @@ module.exports = {
     findUserBy: findUserBy,
     findUserByOrResult: findUserByOrResult,
     saveUserEntity: saveUserEntity
+
 }

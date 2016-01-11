@@ -20,6 +20,7 @@ module.exports = {
     pid: os.pid,
     hostname: os.hostname,
     service: "auth-service",
+    service_friendly_name: "tiger",
     db: lookup('mongo_db', process.env.MONGO_DB, 'mongodb://ec2-52-19-217-56.eu-west-1.compute.amazonaws.com:27017/user_db'),
     kafka: {
         zk: lookup('zk', process.env.ZK, 'stg-kafka.bubbleyou.com:2181'),
@@ -31,7 +32,9 @@ module.exports = {
         },
         topics: {
             service_status_topic: lookup('kafka.topic.status', process.env.KAFKA_STATUS_TOPIC, "service_status"),
-            user_login_topic: lookup('kafka.topic.login', process.env.KAFKA_LOGIN_TOPIC, "user_login")
+            user_login_topic: lookup('kafka.topic.login', process.env.KAFKA_LOGIN_TOPIC, "user_login"),
+            phone_register_topic: lookup('kafka.topic.phone_register', process.env.KAFKA_PHONE_REGISTER_TOPIC, "phone_register")
+
         }
     },
     status: {},
@@ -52,7 +55,34 @@ module.exports = {
                 timeout:2000 //response timeout
             }
         }
+    },
+    reg_code: {
+        lenght: 6,
+        split:3,
+        debug: true
+    },
+    jwt_token: {
+        daily_secret: "5T^k!w&DKbn`:*tc^MEn)*neU73DNC*~$5jE:'8j(eRD",
+        refresh_secret: "8KQV3seKYXz*EP$rrh8#bcgvuCAqKA+?Y3fNLKNepYS^%^?y_%!P",
+        options_daily: {expiresIn: "1d", algorithm: "HS512", issuer: "BubbleYou", subject: "auth"},
+        options_refresh: {algorithm: "HS512", issuer: "BubbleYou", subject: "auth"}
+    },
+    sms: {
+        twilio: {
+            accountSid:'ACb579435228eb11a59f25219efdbe66ae',
+            authToken:'9c3b91fbd321150407245d015bc288ba',
+            from:'+97233727053'
+        },
+        nexmo:{
+            url_verify: "https://api.nexmo.com/verify/json",
+            url: "https://rest.nexmo.com/sms/json",
+            appKey: "3169e43a",
+            appSecret: "c4c00869"
+        }
+
+    },
+    tokenType: {
+        dailyToken: 1,
+        refreshToken: 2
     }
-
-
 };

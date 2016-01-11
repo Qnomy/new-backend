@@ -39,6 +39,22 @@ module.exports.token_loader = function(req, res, next){
 };
 
 /**
+ * Validates that there is a caller user and that the token is not old.
+ * @param req
+ * @param res
+ * @param next
+ */
+module.exports.token_access_validation = function(req, res, next){
+    var caller = req.params.user_caller;
+    if (!caller || (new Date()).getTime() > caller.token_expiration){
+        res.status(401).json({server:"scarlett", http_status:401, status:{ message: "The access token or refresh token are not valid." }});
+        res.end();
+        return;
+    };
+    next();
+};
+
+/**
  * Validates that the api is only accessible to the admin role.
  * @param req
  * @param res
@@ -54,18 +70,3 @@ module.exports.only_admin_access = function(req, res, next){
     next();
 };
 
-/**
- * Validates that there is a caller user and that the token is not old.
- * @param req
- * @param res
- * @param next
- */
-module.exports.token_access_validation = function(req, res, next){
-    var caller = req.params.user_caller;
-    if (!caller || (new Date()).getTime() > caller.token_expiration){
-        res.status(401).json({server:"scarlett", http_status:401, status:{ message: "The access token or refresh token are not valid." }});
-        res.end();
-        return;
-    };
-    next();
-};

@@ -22,10 +22,10 @@ var phoneRegModel = mongoose.model('PhoneReg', phoneRegSchema);
  * @param cb The callback method that will be executed after the search finishes.
  */
 function findPhoneRegBy(criteria, cb){
-    phoneRegModel.findOneAndRemove(criteria,{},
-        function (err, phoneReg, result){
+    phoneRegModel.findOneAndRemove(criteria,
+        function (err, phoneReg){
             if (err){
-                err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem trying to find the phoneReg, please try again later." , original:err}};
+                err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem trying to find the phoneReg, please try again later." }, original: err};
             }
             if (cb){
                 cb(err, phoneReg);
@@ -42,7 +42,7 @@ function findPhoneRegBy(criteria, cb){
 function savePhoneRegEntity(req, res, phoneReg, cb){
     phoneReg.save(function(err){
         if (err){
-            err = {server: config.service_friendly_name, http_status: 500, status: {message: "There was a problem registering your phone, please try again later.", original: err}};
+            err = {server: config.service_friendly_name, http_status: 500, status: {message: "There was a problem registering your phone, please try again later."}, original: err};
         }
         cb(err, phoneReg);
     })

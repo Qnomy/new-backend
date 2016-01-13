@@ -16,7 +16,7 @@ module.exports.caller_loader = function (req, res, next){
             next();
         }
     )
-}
+};
 
 /**
  * Tries to load a token and set it up as a parameter in the request.
@@ -69,4 +69,3 @@ module.exports.only_admin_access = function(req, res, next){
     }
     next();
 };
-

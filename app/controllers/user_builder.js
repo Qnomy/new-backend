@@ -42,42 +42,7 @@ function _randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
 
-/********************************************************************************************************/
-/*                                          Token builder                                               */
-/********************************************************************************************************/
 
-/**
- * Response the created user entity to the client.
- * @param req The request object from where we need the information from the request.
- * @param res The response object used to response the information to the client.
- * @param err An error variable to be evaluated to see what to answer to the client.
- * @param user The user we stored previously.
- */
-function buildTokens(user, cb){
-    // Generate two tokens:
-    // a. An out of date token that will be exchanged on every call.
-    // b. A refresh token that has no out of date.
-    var dailyTokenPayload = {
-        uid: user.uid,
-        role: user.role,
-        token_type: config.tokenType.dailyToken
-    };
-    var refreshTokenPayload = {
-        uid: user.uid,
-        role: user.role,
-        token_type: config.tokenType.refreshToken
-    };
-
-    jwt.sign(dailyTokenPayload, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(dailyToken) {
-        jwt.sign(refreshTokenPayload, config.jwt_token.refresh_secret, config.jwt_token.options_refresh, function(refreshToken) {
-            cb(null, {
-                token: dailyToken,
-                refreshToken: refreshToken
-            });
-        });
-    });
-
-}
 
 /********************************************************************************************************/
 /*                                          Phone registry builder                                      */
@@ -121,13 +86,14 @@ function buildPhoneRegisterEntity(req, res, user, cb){
  * @param requestDto
  * @param cb
  */
-function buildUserEntity(user, phoneRegister, cb){
+function buildUserEntity(req, res, user, phoneRegister, cb){
     // only and if its the first time, we set up the user role, otherwise we just bypass it.
     if (!user){
         user = new UserHandler.UserModel();
         user.role = phoneRegister.role;
         user.phone_number = phoneRegister.phone_number;
     }
+    user.last_login = new Date();
     // TODO: Fill in the device info.
     if (cb != null){
         cb(null,user);
@@ -261,5 +227,4 @@ module.exports = {
     generateRandomNumber: generateRandomNumber,
     formatNumber:formatNumber,
     randomIntInc: _randomIntInc,
-    buildTokens: buildTokens
 }

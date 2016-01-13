@@ -14,6 +14,7 @@ var UserHandler = require('../models/user');
 var PhoneRegisterHandler = require('../models/phone_register');
 var SmsHandler = require('../service/sms');
 
+var TokenBuilder = require('./token_builder');
 var UserBuilder = require('./user_builder');
 var UserValidator = require('./user_validator');
 var UserResponseBuilder = require('./user_response_builder');
@@ -59,7 +60,7 @@ function registerController(req, res){
         },
         function (user, phoneRegister, callback){
             var code = UserBuilder.formatNumber(phoneRegister.code, config.reg_code.split);
-            SmsHandler.sendMessage(req, res, phoneRegister.phone_number, "Welcome to Bubbleyou, your activation code is: " + code, function (err, data){
+            SmsHandler.sendMessage(req, res, phoneRegister.phone_number, "Your activation code is: " + code, function (err, data){
                 callback(err, user, phoneRegister, data);
             });
         },
@@ -89,15 +90,15 @@ function loginController(req, res){
                 code: req.body.code,
                 phone_number: req.body.phone_number
             }, function (err, phoneRegister) {
+                if (!phoneRegister){
+                    err = {server:config.service_friendly_name, http_status:404, status:{ message: "There was a problem trying to find the phoneReg, please try again later."}};
+                    callback(err);
+                    return;
+                }
                 callback(err, phoneRegister);
             })
         },
         function (phoneRegister, callback) {
-            if (!phoneRegister){
-                var err = {server:config.service_friendly_name, http_status:404, status:{ message: "There was a problem trying to find the phoneReg, please try again later."}};
-                callback(err);
-                return;
-            }
             UserHandler.findUserBy(req, res, {_id: phoneRegister.uid}, function (err, user) {
                 callback(err, user, phoneRegister);
             });
@@ -106,7 +107,6 @@ function loginController(req, res){
             UserBuilder.buildUserEntity(req, res, user, phoneRegister, function(err, user) {
                 callback(err, user, phoneRegister);
             });
-
         },
         function (user, phoneRegister, callback) {
             UserHandler.saveUserEntity(user, function(err, user){
@@ -114,7 +114,7 @@ function loginController(req, res){
             });
         },
         function (user, phoneRegister, callback) {
-            logActivity(config.kafka.topics.user_login_topic, user.last_login, phoneRegister, req, function (){
+            logActivity(config.kafka.topics.user_login_topic, user.last_login, { user: user, phoneReg: phoneRegister } , req, function (){
                 callback(null, user, phoneRegister);
             });
         },
@@ -123,13 +123,12 @@ function loginController(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            UserBuilder.buildTokens(user, function (err, tokens){
-                res.send(200).json(tokens);
+            TokenBuilder.buildTokens(user, function (err, tokens){
+                res.status(200).json(tokens);
                 res.end();
             });
         }
     });
-
 }
 
 /**

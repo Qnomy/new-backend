@@ -19,7 +19,7 @@ var userSchema = mongoose.Schema({
     display_pic: String,
     deviceInfo: {},
     created_date: { type: Date, default: Date.now },
-    last_login: Date,
+    last_login: { type: Date },
     active: {type: Boolean, default: true },
     role: {type: Number, default: 1 },
     accounts: [accountSchema]
@@ -51,22 +51,6 @@ function findUserBy(req, res, criteria, cb){
     )
 }
 
-/**
- * Wraps the find user by criteria but it returns a 404 if the user is not found.
- * @param criteria
- * @param cb
- */
-function findUserByOrResult(criteria,cb){
-    findUserBy(criteria, function(user){
-        if (!user) {
-            res.status(404).json({server: config.service_friendly_name, http_status: 500, status: {message: "The user was not found."}});
-            return;
-        }
-        if (cb){
-            cb(user);
-        }
-    })
-}
 
 /**
  * Saves the user into the data store.
@@ -76,7 +60,7 @@ function findUserByOrResult(criteria,cb){
 function saveUserEntity(user, cb){
     user.save(function(err){
         if (err){
-            err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem saving the user, please try again later.", original: err}}
+            err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem saving the user, please try again later."}, original: err}
         }
         if (cb){
             cb(err, user);
@@ -99,7 +83,6 @@ module.exports = {
         Admin: 2
     },
     findUserBy: findUserBy,
-    findUserByOrResult: findUserByOrResult,
     saveUserEntity: saveUserEntity
 
 }

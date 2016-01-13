@@ -64,8 +64,10 @@ module.exports = {
     jwt_token: {
         daily_secret: "5T^k!w&DKbn`:*tc^MEn)*neU73DNC*~$5jE:'8j(eRD",
         refresh_secret: "8KQV3seKYXz*EP$rrh8#bcgvuCAqKA+?Y3fNLKNepYS^%^?y_%!P",
+        credential_secret: "}+C@t9'ec-9BG67,^(h)fk5\.uHgNY]6tAUQDX>8",
         options_daily: {expiresIn: "1d", algorithm: "HS512", issuer: "BubbleYou", subject: "auth"},
-        options_refresh: {algorithm: "HS512", issuer: "BubbleYou", subject: "auth"}
+        options_refresh: {algorithm: "HS512", issuer: "BubbleYou", subject: "auth"},
+        options_credential: {expiresIn: "5m", algorithm: "HS512", issuer: "BubbleYou", subject: "auth"},
     },
     sms: {
         twilio: {
@@ -83,6 +85,7 @@ module.exports = {
     },
     tokenType: {
         dailyToken: 1,
-        refreshToken: 2
+        refreshToken: 2,
+        credentialToken: 3
     }
 };

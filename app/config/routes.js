@@ -3,7 +3,9 @@
  */
 var express = require('express');
 var usersController = require('../controllers/users');
+var credentialsController = require('../controllers/users');
 var statusController = require('../controllers/status');
+
 
 
 /* Middleware definitions */
@@ -26,9 +28,12 @@ module.exports = function (app) {
     /* field dependencies */
     var router = express.Router();
 
+    router.post('/credentials',usersController.login);
+
     /* Create a User profile. */
     router.post('/register',usersController.register);
     router.post('/login',usersController.login);
+
 
     /* Append social accounts to the user. */
     router.post('/accounts/facebook',function(req, res){

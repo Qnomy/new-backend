@@ -30,6 +30,9 @@
     "mocha": "2.3.4",
     "chai":"3.4.1",
     "async": "1.5.2",
-    "jsonwebtoken": "5.5.4"
+    "jsonwebtoken": "5.5.4",
+    "cors": "2.7.1",
+    "node-uuid": "1.4.7",
+    "easynexmo": "0.7.2"
   }
 }

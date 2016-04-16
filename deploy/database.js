@@ -6,6 +6,19 @@ use content_db
 db.createCollection("content_to_locate")
 db.content_to_locate.createIndex( { _id: "hashed" } )
 
+
+password: 123456
+
+use user_db
+db.credentials.insert(
+    {
+        email: "alan.lavintman@gmail.com",
+        password: "e10adc3949ba59abbe56e057f20f883e",
+        name: "Alan",
+        last_name: "Lavintman",
+        phone_number: "+972528812829"
+    }
+);
 /*
 
 use user_db

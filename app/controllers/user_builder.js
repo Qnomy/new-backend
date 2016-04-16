@@ -7,6 +7,7 @@
 var mongoose = require('mongoose');
 var express = require('express');
 var hat = require('hat');
+var uuid = require('node-uuid');
 
 /* Internal dependencies. */
 var config = require('../config/config');
@@ -48,6 +49,7 @@ function _randomIntInc (low, high) {
 /*                                          Phone registry builder                                      */
 /********************************************************************************************************/
 
+
 /**
  * Builds a phone registry entity according to the role specified.
  * If the role of the phone entry does not correspond with a caller that its an admin, we return an error to the user.
@@ -55,24 +57,12 @@ function _randomIntInc (low, high) {
  * @param res
  * @param cb
  */
-function buildPhoneRegisterEntity(req, res, user, cb){
-    var body = req.body;
-    var caller = req.params.user_caller
-    if (body.role == UserHandler.RoleTypes.Admin){
-        if (!caller || caller.role != UserHandler.RoleTypes.Admin){
-            cb({server:config.service_friendly_name, http_status:401, status:{ message: "You dont have permissions to execute such an action." }});
-            return;
-        }
-    }
+function buildPhoneRegisterEntity(phoneNumber){
     var phoneRegister = new PhoneRegHandler.PhoneRegModel();
-    phoneRegister.phone_number = body.phone_number;
+    phoneRegister.phone_number = phoneNumber;
     phoneRegister.code = generateRandomNumber(0,9,config.reg_code.lenght,config.reg_code.split);
-    phoneRegister.role = body.role;
-    if (user){
-        phoneRegister.role = user.role;
-        phoneRegister.uid = user.id ;
-    }
-    cb(null, phoneRegister);
+    phoneRegister.rnd = uuid.v4();
+    return phoneRegister;
 }
 
 /********************************************************************************************************/
@@ -86,12 +76,15 @@ function buildPhoneRegisterEntity(req, res, user, cb){
  * @param requestDto
  * @param cb
  */
-function buildUserEntity(req, res, user, phoneRegister, cb){
+function buildUserEntity(credential, payload, user, phoneRegister, cb){
     // only and if its the first time, we set up the user role, otherwise we just bypass it.
     if (!user){
         user = new UserHandler.UserModel();
         user.role = phoneRegister.role;
         user.phone_number = phoneRegister.phone_number;
+        if (credential){
+            user.cid = credential.id;
+        }
     }
     user.last_login = new Date();
     // TODO: Fill in the device info.
@@ -226,5 +219,5 @@ module.exports = {
     buildPhoneRegisterEntity: buildPhoneRegisterEntity,
     generateRandomNumber: generateRandomNumber,
     formatNumber:formatNumber,
-    randomIntInc: _randomIntInc,
+    randomIntInc: _randomIntInc
 }

@@ -12,15 +12,16 @@ var producer = require('../config/kafka');
 var config = require('../config/config');
 var UserHandler = require('../models/user');
 var PhoneRegisterHandler = require('../models/phone_register');
+var CredentialsHandler = require('../models/credential');
 var SmsHandler = require('../service/sms');
 
 var TokenBuilder = require('./token_builder');
 var UserBuilder = require('./user_builder');
-var UserValidator = require('./user_validator');
-var UserResponseBuilder = require('./user_response_builder');
 var ErrorHandler = require('./error_handler');
 
 var async = require('async');
+
+var output = module.exports;
 
 /**
  * Logs an activity into kafka topics.
@@ -29,7 +30,7 @@ var async = require('async');
  * @param req
  * @param cb
  */
-function logActivity(topic, etime, object, req, cb){
+output.logActivity = function(topic, etime, object, req, cb){
     var message = JSON.stringify({etime: etime, object: object, header: req.headers, body: req.body, params: req.params});
     producer.send([{topic: topic, messages: message}], function (err, data){
         cb();
@@ -41,19 +42,10 @@ function logActivity(topic, etime, object, req, cb){
  * @param req
  * @param res
  */
-function registerController(req, res){
+output.register = function(req, res){
     async.waterfall([
-        function(callback){
-            UserHandler.findUserBy(req, res, { phone_number: req.body.phone_number }, function (err, user){
-                callback(err, user);
-            })
-        },
         function (user, callback){
-            UserBuilder.buildPhoneRegisterEntity(req, res, user, function(err, phoneRegister){
-                callback(err, user, phoneRegister);
-            });
-        },
-        function (user, phoneRegister, callback){
+            var phoneRegister = UserBuilder.buildPhoneRegisterEntity(req.body.phone_number);
             PhoneRegisterHandler.savePhoneRegEntity(req, res, phoneRegister, function(err, phoneRegister){
                 callback(err, user, phoneRegister);
             });
@@ -65,7 +57,7 @@ function registerController(req, res){
             });
         },
         function(user, phoneRegister, data, callback) {
-            logActivity(config.kafka.topics.phone_register_topic, phoneRegister.createdAt, phoneRegister, req, function () {
+            output.logActivity(config.kafka.topics.phone_register_topic, phoneRegister.createdAt, phoneRegister, req, function () {
                 callback(null, user, phoneRegister, data);
             });
         }
@@ -73,7 +65,10 @@ function registerController(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            UserResponseBuilder.responsePhoneRegister(req, res, phoneRegister);
+            TokenBuilder.buildCredentialTokens(phoneRegister.rnd, UserHandler.RoleTypes.Public, function (err, token){
+                res.status(200).json(token);
+                res.end();
+            });
         }
     });
 }
@@ -83,43 +78,54 @@ function registerController(req, res){
  * @param req
  * @param res
  */
-function loginController(req, res){
+output.verify = function (req, res){
     async.waterfall([
         function(callback) {
+            var payload = req.params.token_payload;
             PhoneRegisterHandler.findPhoneRegBy({
                 code: req.body.code,
-                phone_number: req.body.phone_number
+                rnd: payload.rnd
             }, function (err, phoneRegister) {
                 if (!phoneRegister){
                     err = {server:config.service_friendly_name, http_status:404, status:{ message: "There was a problem trying to find the phoneReg, please try again later."}};
                     callback(err);
                     return;
                 }
-                callback(err, phoneRegister);
-            })
-        },
-        function (phoneRegister, callback) {
-            UserHandler.findUserBy(req, res, {_id: phoneRegister.uid}, function (err, user) {
-                callback(err, user, phoneRegister);
+                callback(err, payload, phoneRegister);
             });
         },
-        function (user, phoneRegister, callback) {
-            UserBuilder.buildUserEntity(req, res, user, phoneRegister, function(err, user) {
-                callback(err, user, phoneRegister);
+        function (payload, phoneRegister, callback) {
+            UserHandler.findUserBy(req, res, {phone_number: phoneRegister.phone_number}, function (err, user) {
+                callback(err,payload,  user, phoneRegister);
             });
         },
-        function (user, phoneRegister, callback) {
+        function (payload, user, phoneRegister, callback){
+            // if there is no user, and the role of the token is an admin role, then we need to load a potential credential id to link it with the user.
+            if (!user && payload.role == UserHandler.RoleTypes.Admin){
+                CredentialsHandler.findBy({phone_number: phoneRegister.phone_number}, function (err, credential){
+                    callback(err, credential, payload, user, phoneRegister);
+                });
+            } else {
+                callback(null, null, payload, user, phoneRegister);
+            }
+        }
+        ,
+        function (credential, payload, user, phoneRegister, callback) {
+            UserBuilder.buildUserEntity(credential, payload, user, phoneRegister, function(err, user) {
+                callback(err, credential, user, phoneRegister);
+            });
+        },
+        function (credential, user, phoneRegister, callback) {
             UserHandler.saveUserEntity(user, function(err, user){
-                callback(err, user, phoneRegister);
+                callback(err, credential, user, phoneRegister);
             });
         },
-        function (user, phoneRegister, callback) {
-            logActivity(config.kafka.topics.user_login_topic, user.last_login, { user: user, phoneReg: phoneRegister } , req, function (){
-                callback(null, user, phoneRegister);
+        function (credential, user, phoneRegister, callback) {
+            output.logActivity(config.kafka.topics.user_login_topic, user.last_login, { user: user, phoneReg: phoneRegister } , req, function (){
+                callback(null,credential, user, phoneRegister);
             });
-        },
-
-    ], function (err, user, phoneRegister){
+        }
+    ], function (err, credential, user, phoneRegister){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
@@ -131,47 +137,30 @@ function loginController(req, res){
     });
 }
 
-/**
- * Controller method for logging in from a social network.
- * @param req
- * @param res
- * @param accountType
- */
-function addSocialAccountController(req, res, accountType){
-    UserHandler.findUserByOrResult({ 'accounts.type': accountType, 'accounts.social_id': req.body.social_id }, function (user){
-        UserBuilder.buildUserEntity(user, req.body, function (user){
-            user.role = UserHandler.RoleTypes.Public;
-            UserBuilder.buildAccountEntity(accountType, req.body, function (account){
-                UserValidator.validateSocialAccount(req, res, account, function (account){
-                    UserBuilder.attachAccountToUserEntity(user, account, function (user){
-                        UserHandler.saveUserEntity(user, function (err, user){
-                            logActivity(config.kafka.topics.user_login_topic, user.last_login, user, req, function (){
-                                UserResponseBuilder.responseUser(req, res, err, user);
-                            });
-                        });
-                    });
-                })
+output.find = function(req, res){
+    async.waterfall([
+        function(callback) {
+            var criteria = {}
+            for (var param in req.query){
+                var paramValue = req.query[param];
+                criteria[param] = paramValue;
+            }
+            UserHandler.findUsersBy(criteria, function(err, users){
+                if (err){
+                    callback(err);
+                    return;
+                }
+                callback(err, users);
             });
-        });
+        }
+    ], function (err, users){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).json(users);
+        }
     });
 };
-
-/**
- * Controller method for refreshing a token.
- * @param req
- * @param res
- */
-function refreshTokenController(req, res){
-    UserHandler.findUserBy({ 'token': req.body.token }, function (user){
-        UserValidator.validateToken(req, res, user, {"token_refresh" : req.body.token_refresh}, false, function (user){
-            UserBuilder.buildUserEntity(user, user, function (user){
-                UserHandler.saveUserEntity(user, function (err, user){
-                    UserResponseBuilder.responseUser(req, res, err, user);
-                });
-            });
-        });
-    });
-}
 
 /**
  * Method that gets a user based on a criteria.
@@ -179,19 +168,64 @@ function refreshTokenController(req, res){
  * @param res
  * @param criteria The criteria object that filters the user we are looking for.
  */
-function getUserController(req, res, criteria){
-    UserHandler.findUserBy(criteria, function (user){
-        UserValidator.validateOwnership(req, res, user, function (user){
-            UserResponseBuilder.responseFullUser(req, res, null, user);
-        });
+output.get = function (req, res, criteria){
+    async.waterfall([
+        function(callback) {
+            UserHandler.findUserBy(criteria, function(err, user){
+                if (err){
+                    callback(err);
+                    return;
+                }
+                callback(err, user);
+            });
+        }
+    ], function (err, user){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).json(user);
+        }
     });
 }
 
-module.exports = {
-    register: registerController,
-    login: loginController,
-    addSocialAccount: addSocialAccountController, // TODO: Fix this crap
-    refreshToken: refreshTokenController,
-    getUser: getUserController
-
-}
+///**
+// * Controller method for logging in from a social network.
+// * @param req
+// * @param res
+// * @param accountType
+// */
+//output.addAccount = function (req, res, accountType){
+//    UserHandler.findUserByOrResult({ 'accounts.type': accountType, 'accounts.social_id': req.body.social_id }, function (user){
+//        UserBuilder.buildUserEntity(user, req.body, function (user){
+//            user.role = UserHandler.RoleTypes.Public;
+//            UserBuilder.buildAccountEntity(accountType, req.body, function (account){
+//                UserValidator.validateSocialAccount(req, res, account, function (account){
+//                    UserBuilder.attachAccountToUserEntity(user, account, function (user){
+//                        UserHandler.saveUserEntity(user, function (err, user){
+//                            logActivity(config.kafka.topics.user_login_topic, user.last_login, user, req, function (){
+//                                UserResponseBuilder.responseUser(req, res, err, user);
+//                            });
+//                        });
+//                    });
+//                })
+//            });
+//        });
+//    });
+//};
+//
+///**
+// * Controller method for refreshing a token.
+// * @param req
+// * @param res
+// */
+//output.refreshToken = function(req, res){
+//    UserHandler.findUserBy({ 'token': req.body.token }, function (user){
+//        UserValidator.validateToken(req, res, user, {"token_refresh" : req.body.token_refresh}, false, function (user){
+//            UserBuilder.buildUserEntity(user, user, function (user){
+//                UserHandler.saveUserEntity(user, function (err, user){
+//                    UserResponseBuilder.responseUser(req, res, err, user);
+//                });
+//            });
+//        });
+//    });
+//};

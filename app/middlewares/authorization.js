@@ -1,5 +1,7 @@
 var UserModel = require('../models/user').UserModel;
 var RoleTypes = require('../models/user').RoleTypes;
+var jwt = require('jsonwebtoken');
+var config = require('../config/config');
 
 /**
  * This function actually loads the caller user into the request object.
@@ -10,7 +12,7 @@ var RoleTypes = require('../models/user').RoleTypes;
  * @param next
  */
 module.exports.caller_loader = function (req, res, next){
-    UserModel.findOne({ 'token': req.params.authorization },
+    UserModel.findOne({ '_id': req.params.token_payload.uid },
         function (err, user){
             req.params.user_caller = user;
             next();
@@ -30,29 +32,32 @@ module.exports.caller_loader = function (req, res, next){
  */
 module.exports.token_loader = function(req, res, next){
     var token = req.headers['authorization'];
-    if (!token){
-        // try to get it from the querystring.
-        token = req.query.authorization;
+    if (token){
+        token = token.split(" ").pop();
     }
     req.params.authorization = token;
     next();
 };
 
 /**
- * Validates that there is a caller user and that the token is not old.
+ * Validates that the token is not old.
  * @param req
  * @param res
  * @param next
  */
-module.exports.token_access_validation = function(req, res, next){
-    var caller = req.params.user_caller;
-    if (!caller || (new Date()).getTime() > caller.token_expiration){
-        res.status(401).json({server:"scarlett", http_status:401, status:{ message: "The access token or refresh token are not valid." }});
-        res.end();
-        return;
-    };
-    next();
-};
+module.exports.credential_token_validation = function(req, res, next){
+    var token = req.params.authorization;
+    jwt.verify(token, config.jwt_token.credential_secret, config.jwt_token.options_credential, function(err, payload){
+        if (err){
+            res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid." }});
+            res.end();
+            return;
+        }
+        req.params.token_payload = payload;
+        next();
+    })
+}
+
 
 /**
  * Validates that the api is only accessible to the admin role.

@@ -86,6 +86,8 @@ module.exports = {
     tokenType: {
         dailyToken: 1,
         refreshToken: 2,
-        credentialToken: 3
-    }
+        credentialToken: 3,
+        registerToken: 4,
+    },
+    corsRequest: ['http://admin.bubbleyou.com', 'https://admin.bubbleyou.com']
 };

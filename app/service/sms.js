@@ -7,6 +7,9 @@ var twilio = require("twilio");
 var request = require("superagent");
 
 var client = twilio(config.sms.twilio.accountSid, config.sms.twilio.authToken);
+var nexmo = require('easynexmo');
+nexmo.initialize(config.sms.nexmo.appKey, config.sms.nexmo.appSecret, true);
+
 /**********************************************************************************************************************/
 /*                                                        TWILIO                                                      */
 /**********************************************************************************************************************/
@@ -34,42 +37,28 @@ function twilioVerifyNumber(req, res, phoneNumberTo, cb){
 /*                                                        NEXTMO                                                      */
 /**********************************************************************************************************************/
 
-function nextmoSendMessage(req, res, phoneNumberTo, body, cb){
-    request
-        .get(config.sms.nexmo.url)
-        .query({api_key: config.sms.nexmo.appKey})
-        .query({api_secret: config.sms.nexmo.appSecret})
-        .query({from: "BubbleYou"})
-        .query({to: phoneNumberTo})
-        .query({text: body})
-        .end(function(err, nextmoResponse){
-            if (err){
-                err = {server: config.service_friendly_name, http_status: 500, status: {message: "There was a problem sending you an sms, please try again later.", original: err}};
-                cb(err, nextmoResponse);
-                return;
-            }
-            if (nextmoResponse.body.messages[0].status != "0"){
-                err = {server: config.service_friendly_name, http_status: 500, status: {message: "There was a problem sending you an sms, please try again later."}};
-                cb(err, nextmoResponse);
-                return;
-            }
-            cb(err, nextmoResponse);
-        });
+
+/**
+ * Talks to nextmo and sends a verification message, it returns a request id.
+ * @param req
+ * @param res
+ * @param phoneNumberTo
+ * @param body
+ * @param cb
+ */
+function verifyNumber(req, res, phoneNumberTo, cb){
+    nexmo.verifyNumber({number:phoneNumberTo, brand:"Foam"},function (err,response) {
+        cb(err, response);
+    });
 };
 
-function nextmoVerifyNumber(req, res, phoneNumberTo, cb){
-    request
-        .get(config.sms.nexmo.url_verify)
-        .query({api_key: config.sms.nexmo.appKey})
-        .query({api_secret: config.sms.nexmo.appSecret})
-        .query({number: phoneNumberTo})
-        .query({brand: "NexmoVerifyTest"})
-        .end(function(err, verify){
-            cb(err, verify);
-        });
+function verifyCode(req, res, code, request_id, cb){
+    nexmo.checkVerifyRequest({request_id:request_id, code: code},function(err, message){
+        cb(err, message);
+    });
 }
 
 module.exports = {
-    sendMessage: nextmoSendMessage,
-    verifyNumber: nextmoVerifyNumber
+    verifyNumber: verifyNumber,
+    verifyCode: verifyCode
 }

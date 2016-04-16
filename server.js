@@ -15,7 +15,7 @@ require('./app/config/express')(app);
 // Contains the routes configuration pointing to the controllers.
 require('./app/config/routes')(app);
 // Contains the kafka configuration and connection.
-require('./app/config/kafka');
+//require('./app/config/kafka');
 // Contains the mongodb configuration and connection.
 require('./app/config/mongodb');
 

@@ -4,7 +4,8 @@
 var bodyParser = require('body-parser'),
     config = require('./config'),
     partialResponse = require('express-partial-response'),
-    statusMiddleware = require('../middlewares/status');
+    statusMiddleware = require('../middlewares/status'),
+    cors = require('cors');
 
 module.exports = function (app) {
     // Validates that the mongo and kafka connection are alive.
@@ -18,5 +19,16 @@ module.exports = function (app) {
     app.use(partialResponse({
         query: 'filter'
     }));
+
+    var whitelist = config.corsRequest;
+    var corsOptions = {
+        origin: function(origin, callback){
+            var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+            callback(null, originIsWhitelisted);
+        }
+    };
+
+    app.use(cors(corsOptions));
+
 };
 

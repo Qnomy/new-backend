@@ -17,17 +17,17 @@ var userSchema = mongoose.Schema({
     phone_number: String,
     display_name: String,
     display_pic: String,
-    deviceInfo: {},
     created_date: { type: Date, default: Date.now },
     last_login: { type: Date },
     active: {type: Boolean, default: true },
     role: {type: Number, default: 1 },
+    //cid: {type: String }, // Probably it has a credential id linked.
     accounts: [accountSchema]
 });
 
 userSchema.index({ phone_number: 1 }, { unique: true });
 userSchema.index({ "accounts.social_id": 1, "accounts.type": 1 }, { unique: true });
-
+userSchema.index({ "role": 1 });
 
 /* Model definition */
 var accountModel = mongoose.model('Account', accountSchema);
@@ -38,7 +38,7 @@ var userModel = mongoose.model('User', userSchema);
  * @param criteria The criteria object passed by parameter.
  * @param cb The callback method that will be executed after the search finishes.
  */
-function findUserBy(req, res, criteria, cb){
+function findUserBy(criteria, cb){
     userModel.findOne(criteria,
         function (err, user){
             if (err){
@@ -46,6 +46,19 @@ function findUserBy(req, res, criteria, cb){
             }
             if (cb){
                 cb(err, user);
+            }
+        }
+    )
+}
+
+function findUsersBy(criteria, cb){
+    userModel.find(criteria,
+        function (err, users){
+            if (err){
+                err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem trying to find users, please try again later." }, original: err};
+            }
+            if (cb){
+                cb(err, users);
             }
         }
     )
@@ -68,6 +81,28 @@ function saveUserEntity(user, cb){
     })
 }
 
+function saveAccount(user, account_type, account_social_id, account_token, account_meta, cb){
+    // try to find the document..
+    var account = null;
+    for (var i = 0; i < user.accounts; i++){
+        if (user.accounts[i].type == account_type){
+            account = user.accounts[i];
+            break;
+        }
+    }
+    // if the doc was not found, create a new one.
+    if (!account){
+        account = new accountModel();
+    }
+    // update the fields and save the document
+    account.social_id = account_social_id;
+    account.token = account_token;
+    account.meta = account_meta;
+    user.accounts.push(account);
+
+    saveUserEntity(user, cb);
+}
+
 /* Object export */
 module.exports = {
     AccountModel: accountModel,
@@ -83,6 +118,8 @@ module.exports = {
         Admin: 2
     },
     findUserBy: findUserBy,
-    saveUserEntity: saveUserEntity
+    saveUserEntity: saveUserEntity,
+    findUsersBy:findUsersBy,
+    saveAccount: saveAccount
 
 }

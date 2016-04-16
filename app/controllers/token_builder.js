@@ -2,6 +2,7 @@
  * Created by alan on 1/13/16.
  */
 var jwt = require('jsonwebtoken');
+var config = require('../config/config');
 /**
  * Response the created user entity to the client.
  * @param req The request object from where we need the information from the request.
@@ -14,22 +15,19 @@ function buildTokens(user, cb){
     // a. An out of date token that will be exchanged on every call.
     // b. A refresh token that has no out of date.
     var dailyTokenPayload = {
-        uid: user.uid,
+        id: user.id,
         role: user.role,
         token_type: config.tokenType.dailyToken
     };
-    var refreshTokenPayload = {
-        uid: user.uid,
-        role: user.role,
-        token_type: config.tokenType.refreshToken
-    };
 
     jwt.sign(dailyTokenPayload, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(dailyToken) {
+        var refreshTokenPayload = {
+            id: user.id,
+            role: user.role,
+            token_type: config.tokenType.refreshToken
+        };
         jwt.sign(refreshTokenPayload, config.jwt_token.refresh_secret, config.jwt_token.options_refresh, function(refreshToken) {
-            cb(null, {
-                token: dailyToken,
-                refreshToken: refreshToken
-            });
+            cb(null, { has_accounts:false, token: dailyToken, refresh_token: refreshToken });
         });
     });
 
@@ -40,9 +38,10 @@ function buildTokens(user, cb){
  * @param credential The credentials passed by parameter
  * @param cb A callback function that will get the credentials token by parameter.
  */
-function buildCredentialTokens(credential, cb){
+function buildCredentialTokens(rnd, role, cb){
     var credentialTokenPayload = {
-        email: credential.email,
+        rnd: rnd,
+        role: role,
         token_type: config.tokenType.credentialToken
     }
     jwt.sign(credentialTokenPayload, config.jwt_token.credential_secret, config.jwt_token.options_credential, function(credentialsToken) {

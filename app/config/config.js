@@ -78,10 +78,10 @@ module.exports = {
         nexmo:{
             url_verify: "https://api.nexmo.com/verify/json",
             url: "https://rest.nexmo.com/sms/json",
-            appKey: "4bfb708b",
-            appSecret:"F978ab67a93"
-            //appKey: "3169e43a",
-            //appSecret: "c4c00869"
+            //appKey: "4bfb708b",
+            //appSecret:"F978ab67a93"
+            appKey: "3169e43a",
+            appSecret: "c4c00869"
         }
 
     },

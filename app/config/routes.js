@@ -7,6 +7,7 @@ var express = require('express');
 
 
 var authController = require('../controllers/auth');
+var contentController = require('../controllers/content/content');
 
 var statusController = require('../controllers/status');
 
@@ -17,15 +18,26 @@ var statusController = require('../controllers/status');
 module.exports = function (app) {
 
     /* field dependencies */
-    var router = express.Router();
+    var authRouter = express.Router();
 
-    router.post('/register', authController.register);
-    router.post('/verify', authController.verify);
-    router.post('/account/:uid', authController.post_account);
+    authRouter.post('/register', authController.register);
+    authRouter.post('/verify', authController.verify);
+    authRouter.get('/:uid', authController.get);
+
+    //authRouter.post('/init-account/:uid', authController.init_account);
+
+    authRouter.post('/account/:uid', authController.post_account);
+    authRouter.get('/account/:uid', authController.get_accounts);
+    //authRouter.get('/account/:uid/aid', authController.get_account);
+
+
+    var contentRouter = express.Router();
+
+    contentRouter.post('/',contentController.post);
+    contentRouter.get('/',contentController.search);
+    contentRouter.get('/:cid',contentController.get);
 
     //router.get('/account/:uid', authController.get_accounts);
-
-
 
     //
     ///* Login with user credentials */
@@ -59,5 +71,6 @@ module.exports = function (app) {
     //
 
     app.use('',statusController);
-    app.use('/auth/v1',router);
+    app.use('/v1/auth',authRouter);
+    app.use('/v1/content',contentRouter);
 };

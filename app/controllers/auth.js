@@ -3,6 +3,7 @@
  */
 
 var UserHandler = require('../models/user');
+var RepositoryHandler = require('../models/repository');
 var SmsHandler = require('../service/sms');
 
 var TokenBuilder = require('./token_builder');
@@ -52,7 +53,7 @@ output.verify = function(req, res){
         },
         function(callback){
             // find a user.
-            UserHandler.findUserBy({phone_number:req.body.phone_number}, function(err, user){
+            UserHandler.UserModel.findOne({phone_number:req.body.phone_number}, function(err, user){
                 callback(err, user);
             });
         },
@@ -63,7 +64,7 @@ output.verify = function(req, res){
                 user = new UserHandler.UserModel();
                 user.role = UserHandler.RoleTypes.Public;
                 user.phone_number = req.body.phone_number;
-                UserHandler.saveUserEntity(user, function(err, user){
+                user.save(function(err){
                     callback(err, user);
                 });
             };
@@ -86,25 +87,27 @@ output.verify = function(req, res){
 };
 
 /**
- * headers: Authorization:
- * input: post: body: {"code": "", "request_id":"", "phone_number":""}
+ * input: post: body: {"code": "", "request_id":"", "uid":""}
  * output: {"token": ""}
  * @param req
  * @param res
  */
-output.post_account = function(req, res){
+output.init_account = function(req, res){
     async.waterfall([
         function (callback){
-            UserHandler.findUserBy({_id: req.params.uid}, function(err, user){
+            // find a user.
+            UserHandler.UserModel.find({id:req.body.id}, function(err, user){
                 callback(err, user);
-            })
+            });
         },
         function(user, callback){
             if (!user){
                 callback({code: 2, message: "There was no user found."});
             } else{
                 // add a new account to the user.
-                UserHandler.saveAccount(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, user){
+                user.display_name = body.display_name;
+                user.display_pic = body.display_pic;
+                UserHandler.save(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, user){
                     callback(err, user);
                 });
             }
@@ -118,6 +121,124 @@ output.post_account = function(req, res){
         };
     });
 };
+
+
+/**
+ * headers: Authorization:
+ * input: post: body: {"type": 1|2|3, "social_id":"", "token":"", "meta":"WHATEVER YOU WANT"}
+ * output: {}
+ * @param req
+ * @param res
+ */
+output.post_account = function(req, res){
+    async.waterfall([
+        function (callback){
+            UserHandler.UserModel.find({id:req.params.uid}, function(err, user){
+                callback(err, user);
+            });
+        },
+        function(user, callback){
+            if (!user){
+                callback({code: 2, message: "There was no user found."});
+            } else{
+                UserHandler.save(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, user){
+                    callback(err, user);
+                });
+            }
+        }
+    ],function (err, user){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).json({});
+            res.end();
+        };
+    });
+};
+
+/**
+ * url: /v1/auth/:uid method post
+ * {"display_name": "", "display_pic":""}
+ *
+ * @param req
+ * @param res
+ */
+
+output.save_profile = function(req, res){
+    async.waterfall([
+        function (callback){
+            UserHandler.UserModel.find({id:req.params.uid}, function(err, user){
+                callback(err, user);
+            });
+        },
+        function(user, callback){
+            user.display_name = req.body.display_name;
+            user.display_pic = req.body.display_pic;
+            user.save(function (err){
+                callback(err, user);
+            })
+        }
+    ],function (err, user){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).json({uid: user.id});
+            res.end();
+        };
+    });
+}
+
+
+
+/**
+ * headers: Authorization:
+ * input: post: body: {"code": "", "request_id":"", "phone_number":""}
+ * output: {"token": ""}
+ * @param req
+ * @param res
+ */
+output.get = function(req, res){
+    async.waterfall([
+        function (callback){
+            UserHandler.UserModel.findOne({id:req.params.uid},function(err, user){
+                callback(err, user);
+            });
+        }
+    ],function (err, user){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).json(user);
+            res.end();
+        };
+    });
+};
+
+/**
+ * headers: Authorization:
+ * input: post: body: {"code": "", "request_id":"", "phone_number":""}
+ * output: {"token": ""}
+ * @param req
+ * @param res
+ */
+output.get_accounts = function(req, res){
+    async.waterfall([
+        function (callback){
+            UserHandler.UserModel.findOne({id:req.params.uid},function(err, user){
+                callback(err, user);
+            });
+        }
+    ],function (err, user){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).json(user.accounts);
+            res.end();
+        };
+    });
+};
+
+
 //
 //output.get_account = function(req, res){
 //    async.waterfall([

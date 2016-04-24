@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var crypto =  require('crypto');
+var ObjectId = require('mongodb').ObjectID;
 var ContentBuilder = require('./content_builder');
 var ContentHandler = require('../../models/content');
 var ErrorHandler = require('../error_handler');
@@ -18,35 +19,40 @@ var output = module.exports;
 output.post = function(req, res){
     async.waterfall([
         function (callback){
-            UserHandler.UserModel.findOne({id: req.body.uid}, function(err, user){
-                callback(err, user)
+            UserHandler.UserModel.findOne({_id: new ObjectId(req.params.uid)}, function(err, user){
+                if (!user){
+                    callback({code: 2, message: "There was no user found."});
+                } else {
+                    callback(err, user)
+                }
             });
         },
         function (user, callback){
+            // Store it forever in the content collection.
             ContentBuilder.buildContent(user, req, res, function(err, content){
-                content.save(function(err, pContent){
-                    callback(err, user, pContent)
+                content.save(function(err){
+                    callback(err, user, content)
                 });
             });
         },
-        function (user, pContent,callback){
-            ContentBuilder.buildGeoContent(user,pContent, req, res, function(err, geoContent){
-                geoContent.save(ContentHandler.GeoContentModel , function(err, pGeoContent){
-                    callback(err, user, pContent,pGeoContent)
+        function (user, content,callback){
+            // Keep it in the geo located index.
+            ContentBuilder.buildGeoContent(user,content, req, res, function(err, geoContent){
+                geoContent.save(function(err){
+                    callback(err, user, content,geoContent)
                 });
             });
         },
-        function (user, pContent, pGeoContent,callback){
+        function (user, content, geoContent,callback){
             // TODO: Fill in the timeline of the user !!!!
-            callback(null, user, pContent, pGeoContent);
+            callback(null, user, content, geoContent);
         }
-
-    ],function (err,  user, pContent,pGeoContent) {
+    ],function (err,  user, content,geoContent) {
         if (err) {
             ErrorHandler.handle(res, err);
         } else {
             res.status(200).json({
-                cid:pContent.id
+                cid:content.id
             });
         }
     });
@@ -54,29 +60,35 @@ output.post = function(req, res){
 
 
 output.search = function(req, res){
-
     async.waterfall([
         function (callback){
-            var searchCriteria = JSON.parse(req.body.criteria);
-            ContentHandler.geoSearch(searchCriteria, req.body.limit, function(err, geoContentItems){
-                callback(err, geoContentItems);
+            ContentHandler.GeoContentModel.find({
+                loc: {
+                    $near: {
+                        $geometry: { type: "Point",  coordinates: [ req.params.longitude, req.params.latitude ] },
+                        $minDistance: Number(req.params.min_distance),
+                        $maxDistance: Number(req.params.max_distance)
+                    }
+                }
+            }).limit(100).exec(function(err, items){
+                callback(err, items);
             });
         },
-        function( geoContentItems, callback) {
+        function( geoItems, callback) {
             var contentIds = [];
-            geoContentItems.forEach(function (geoItem) {
+            geoItems.forEach(function (geoItem) {
                 contentIds.push(geoItem.object_id);
             });
-            Repository.findBy(ContentHandler.ContentModel, {'_id': {$in: contentIds}}, 404, "There was a problem while retrieving info from the geoindex", function (err, items) {
-                callback(err, geoContentItems, items);
+            ContentHandler.ContentModel.find({'_id': {$in: contentIds}}, function (err, contentItems) {
+                callback(err, geoItems, contentItems);
             })
         }
-    ],function (err, pContent, pGeoContent) {
+    ],function (err, geoItems, contentItems) {
         if (err) {
             ErrorHandler.handle(res, err);
         } else {
             res.status(200).json({
-                cid:content.id
+                result: contentItems
             });
         }
     });

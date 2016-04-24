@@ -10,7 +10,7 @@ function handle(res, err){
     if (err.http_status){
         res.status(err.http_status).json(err);
     } else {
-        res.status(500).json({message: 'There was a server error, please try again soon.'});
+        res.status(500).json({http_status: 500, message: 'There was a server error, please try again soon.'});
     }
     res.end();
     return;

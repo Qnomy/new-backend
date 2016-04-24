@@ -3,6 +3,14 @@
  */
 var ContentHandler = require('../../models/content');
 
+
+/**
+ * This collection is kept forever and partitionated by country (Ideally and not implemented yet).
+ * @param user
+ * @param req
+ * @param res
+ * @param cb
+ */
 function buildContent(user, req, res, cb){
     var body = req.body;
     var content = new ContentHandler.ContentModel();
@@ -17,16 +25,24 @@ function buildContent(user, req, res, cb){
     cb(null, content);
 };
 
+/**
+ * This collection actually only lasts for 15 minutes.
+ * @param user
+ * @param content
+ * @param req
+ * @param res
+ * @param cb
+ */
 function buildGeoContent(user, content, req, res, cb){
-    var content = new ContentHandler.GeoContentModel();
-    content.object_id = content.id;
-    content.loc= [content.longitude, content.latitude];
-    content.user = {
+    var geoContent = new ContentHandler.GeoContentModel();
+    geoContent.object_id = content.id;
+    geoContent.loc= [content.longitude, content.latitude];
+    geoContent.user = {
         uid: user.id,
         display_name: user.display_name,
         display_pic: user.display_pic
     }
-    cb(null, content);
+    cb(null, geoContent);
 };
 
 module.exports = {

@@ -100,8 +100,12 @@ output.init_account = function(req, res){
     async.waterfall([
         function (callback){
             // find a user.
-            UserHandler.UserModel.find({id:req.body.id}, function(err, user){
-                callback(err, user);
+            UserHandler.UserModel.findOne({_id: new ObjectId(req.params.id)}, function(err, user){
+                if (!user){
+                    callback({http_status: 404, message: "The user does not exists in our system."});
+                } else {
+                    callback(err, user);
+                }
             });
         },
         function(user, callback){
@@ -138,17 +142,17 @@ output.post_account = function(req, res){
     async.waterfall([
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user){
-                callback(err, user);
+                if (!user){
+                    callback({http_status: 404, message: "The user does not exists in our system."});
+                } else {
+                    callback(err, user);
+                }
             });
         },
         function(user, callback){
-            if (!user){
-                callback({code: 2, message: "There was no user found."});
-            } else{
-                UserHandler.save(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, user){
-                    callback(err, user);
-                });
-            }
+            UserHandler.save(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, user){
+                callback(err, user);
+            });
         }
     ],function (err, user){
         if (err){
@@ -172,7 +176,11 @@ output.post = function(req, res){
     async.waterfall([
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user){
-                callback(err, user);
+                if (!user){
+                    callback({http_status: 404, message: "The user does not exists in our system."});
+                } else {
+                    callback(err, user);
+                }
             });
         },
         function(user, callback){
@@ -203,7 +211,11 @@ output.get = function(req, res){
     async.waterfall([
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)},function(err, user){
-                callback(err, user);
+                if (!user){
+                    callback({http_status: 404, message: "The user does not exists in our system."});
+                } else {
+                    callback(err, user);
+                }
             });
         }
     ],function (err, user){

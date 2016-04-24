@@ -35,8 +35,8 @@ module.exports = function (app) {
 
     var contentRouter = express.Router();
 
-    contentRouter.post('/',contentController.post);
-    contentRouter.get('/',contentController.search);
+    contentRouter.post('/:uid',contentController.post);
+    contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',contentController.search);
     contentRouter.get('/:cid',contentController.get);
 
     //router.get('/account/:uid', authController.get_accounts);

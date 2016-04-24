@@ -25,7 +25,7 @@ var geoContentSchema = mongoose.Schema({
     object_id: String,
     loc: {
         type: [Number],  // [<longitude>, <latitude>]
-        index: '2d'      // create the geospatial index
+        index: '2dsphere'      // create the geospatial index
     },
     created_date : { type: Date, expires: '15m', default: Date.now },
     user: {

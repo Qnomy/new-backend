@@ -24,6 +24,8 @@ module.exports = function (app) {
     authRouter.post('/verify', authController.verify);
     authRouter.get('/:uid', authController.get);
 
+    authRouter.post('/:uid', authController.post);
+
     //authRouter.post('/init-account/:uid', authController.init_account);
 
     authRouter.post('/account/:uid', authController.post_account);

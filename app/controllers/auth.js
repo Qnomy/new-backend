@@ -5,7 +5,7 @@
 var UserHandler = require('../models/user');
 var RepositoryHandler = require('../models/repository');
 var SmsHandler = require('../service/sms');
-
+var ObjectId = require('mongodb').ObjectID;
 var TokenBuilder = require('./token_builder');
 var ErrorHandler = require('./error_handler');
 
@@ -24,7 +24,11 @@ output.register = function(req, res){
         function (callback){
             // TODO: Change the body to something configurable.
             SmsHandler.verifyNumber(req, res, req.body.phone_number, function (err, request_id){
-                callback(err, request_id);
+                if (request_id.status != 0){
+                    callback({http_status: 500, message: "There has been a problem with our sms provider, please try again soon."}, request_id);
+                } else {
+                    callback(err, request_id);
+                }
             });
         }
     ],function (err, request_id){
@@ -38,7 +42,7 @@ output.register = function(req, res){
 };
 
 /**
- * input: post: body: {"code": "", "request_id":"", "phone_number":""}
+ * input: post: body: {"code": "", x"request_id":"", "phone_number":""}
  * output: {"token": ""}
  * @param req
  * @param res
@@ -133,7 +137,7 @@ output.init_account = function(req, res){
 output.post_account = function(req, res){
     async.waterfall([
         function (callback){
-            UserHandler.UserModel.find({id:req.params.uid}, function(err, user){
+            UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user){
                 callback(err, user);
             });
         },
@@ -164,10 +168,10 @@ output.post_account = function(req, res){
  * @param res
  */
 
-output.save_profile = function(req, res){
+output.post = function(req, res){
     async.waterfall([
         function (callback){
-            UserHandler.UserModel.find({id:req.params.uid}, function(err, user){
+            UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user){
                 callback(err, user);
             });
         },
@@ -188,8 +192,6 @@ output.save_profile = function(req, res){
     });
 }
 
-
-
 /**
  * headers: Authorization:
  * input: post: body: {"code": "", "request_id":"", "phone_number":""}
@@ -200,7 +202,7 @@ output.save_profile = function(req, res){
 output.get = function(req, res){
     async.waterfall([
         function (callback){
-            UserHandler.UserModel.findOne({id:req.params.uid},function(err, user){
+            UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)},function(err, user){
                 callback(err, user);
             });
         }
@@ -224,8 +226,12 @@ output.get = function(req, res){
 output.get_accounts = function(req, res){
     async.waterfall([
         function (callback){
-            UserHandler.UserModel.findOne({id:req.params.uid},function(err, user){
-                callback(err, user);
+            UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)},function(err, user){
+                if (!user){
+                    callback({http_status: 404, message: "The user does not exists in our system."});
+                } else{
+                    callback(err, user);
+                }
             });
         }
     ],function (err, user){
@@ -237,32 +243,3 @@ output.get_accounts = function(req, res){
         };
     });
 };
-
-
-//
-//output.get_account = function(req, res){
-//    async.waterfall([
-//        function (callback){
-//            UserHandler.findUserBy({_id: req.params.uid}, function(err, user){
-//                callback(err, user);
-//            })
-//        },
-//        function(err, user, callback){
-//            if (!user){
-//                callback({code: 2, message: "There was no user found."});
-//            } else{
-//                // add a new account to the user.
-//                UserHandler.post_(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, account){
-//                    callback(err, user, account);
-//                });
-//            }
-//        }
-//    ],function (err, user, account){
-//        if (err){
-//            ErrorHandler.handle(res, err);
-//        } else {
-//            res.status(200).json({});
-//            res.end();
-//        };
-//    });
-//};

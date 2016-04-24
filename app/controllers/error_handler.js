@@ -7,7 +7,11 @@ function handle(res, err){
     //2. Delete the original error stack trace.
     delete err.original;
     // 3. Return the information to the user.
-    res.status(err.http_status).json(err);
+    if (err.http_status){
+        res.status(err.http_status).json(err);
+    } else {
+        res.status(500).json({message: 'There was a server error, please try again soon.'});
+    }
     res.end();
     return;
 }

@@ -84,7 +84,7 @@ var userModel = mongoose.model('User', userSchema);
 function save(user, account_type, account_social_id, account_token, account_meta, cb){
     // try to find the document..
     var account = null;
-    for (var i = 0; i < user.accounts; i++){
+    for (var i = 0; i < user.accounts.length; i++){
         if (user.accounts[i].type == account_type){
             account = user.accounts[i];
             break;
@@ -95,10 +95,12 @@ function save(user, account_type, account_social_id, account_token, account_meta
         account = new accountModel();
     }
     // update the fields and save the document
+    account.type = account_type;
     account.social_id = account_social_id;
     account.token = account_token;
     account.meta = account_meta;
-    user.accounts.push(account);
+
+    user.accounts.addToSet(account);
     user.save(function(err, pUser){
         cb(err, pUser);
     })

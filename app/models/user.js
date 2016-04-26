@@ -33,54 +33,6 @@ userSchema.index({ "role": 1 });
 var accountModel = mongoose.model('Account', accountSchema);
 var userModel = mongoose.model('User', userSchema);
 
-///**
-// * Method in charge of finding a user based on the criteria passed by parameter.
-// * @param criteria The criteria object passed by parameter.
-// * @param cb The callback method that will be executed after the search finishes.
-// */
-//function findUserBy(criteria, cb){
-//    userModel.findOne(criteria,
-//        function (err, user){
-//            if (err){
-//                err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem trying to find the user, please try again later." }, original: err};
-//            }
-//            if (cb){
-//                cb(err, user);
-//            }
-//        }
-//    )
-//}
-//
-//function findUsersBy(criteria, cb){
-//    userModel.find(criteria,
-//        function (err, users){
-//            if (err){
-//                err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem trying to find users, please try again later." }, original: err};
-//            }
-//            if (cb){
-//                cb(err, users);
-//            }
-//        }
-//    )
-//}
-
-
-///**
-// * Saves the user into the data store.
-// * @param user The user we are trying to store.
-// * @param cb The callback method that will be executed after the store.
-// */
-//function saveUserEntity(user, cb){
-//    user.save(function(err){
-//        if (err){
-//            err = {server:config.service_friendly_name, http_status:500, status:{ message: "There was a problem saving the user, please try again later."}, original: err}
-//        }
-//        if (cb){
-//            cb(err, user);
-//        }
-//    })
-//}
-
 function save(user, account_type, account_social_id, account_token, account_meta, cb){
     // try to find the document..
     var account = null;

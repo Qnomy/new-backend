@@ -22,10 +22,10 @@ var output = module.exports;
 output.register = function(req, res){
     async.waterfall([
         function (callback){
-            // TODO: Change the body to something configurable.
             SmsHandler.verifyNumber(req, res, req.body.phone_number, function (err, request_id){
-                if (request_id.status != 0){
+                if (request_id.status != 0 && request_id.status != 10){
                     callback({http_status: 500, message: "There has been a problem with our sms provider, please try again soon."}, request_id);
+                    // log error to logentries or something.
                 } else {
                     callback(err, request_id);
                 }

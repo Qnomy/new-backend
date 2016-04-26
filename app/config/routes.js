@@ -39,40 +39,8 @@ module.exports = function (app) {
     contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',contentController.search);
     contentRouter.get('/:cid',contentController.get);
 
-    //router.get('/account/:uid', authController.get_accounts);
-
-    //
-    ///* Login with user credentials */
-    //router.post('/login', credentialsController.login);
-    //router.get('/credentials/:email', credentialsController.get);
-    //
-    ///* Create a User profile. */
-    //router.post('/register', usersController.register);
-    //router.post('/verify', usersController.verify);
-    //
-    //router.get('/users', usersController.find);
-    //router.get('/users/:uid', function(req, res){
-    //    usersController.get(req, res, { '_id': req.params.uid });
-    //});
-    //router.get('/users/:accountType/:socialId', function (req, res){
-    //    usersController.get(req, res, { 'accounts.social_id': req.params.socialId, 'accounts.type': req.params.accountType });
-    //});
-    //
-    ///* Append social accounts to the user. */
-    //router.post('/accounts/facebook',function(req, res){
-    //    usersController.addSocialAccount(req, res, AccountTypes.Facebook);
-    //});
-    //
-    //router.post('/accounts/twitter',function(req, res){
-    //    usersController.addSocialAccount(req, res, AccountTypes.Twitter);
-    //});
-    //
-    //router.post('/accounts/instagram',function(req, res){
-    //    usersController.addSocialAccount(req, res, AccountTypes.Instagram);
-    //});
-    //
-
     app.use('',statusController);
     app.use('/v1/auth',authRouter);
+    app.post('/v1/upload/sign',contentController.signature);
     app.use('/v1/content',contentRouter);
 };

@@ -78,12 +78,16 @@ module.exports = {
         nexmo:{
             url_verify: "https://api.nexmo.com/verify/json",
             url: "https://rest.nexmo.com/sms/json",
-            //appKey: "4bfb708b",
-            //appSecret:"F978ab67a93"
-            appKey: "3169e43a",
-            appSecret: "c4c00869"
+            appKey: "4bfb708b",
+            appSecret:"f978ab67a937d22a"
+            //appKey: "3169e43a",
+            //appSecret: "c4c00869"
         }
 
+    },
+    cloudinary:{
+        secret: "844365664527282",
+        apiKey: "1nbW5NByG-Wpy8vQ_clKIhjABag"
     },
     tokenType: {
         dailyToken: 1,

@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var crypto =  require('crypto');
 var ObjectId = require('mongodb').ObjectID;
+var Config = require('../../config/config');
 var ContentBuilder = require('./content_builder');
 var ContentHandler = require('../../models/content');
 var ErrorHandler = require('../error_handler');
@@ -8,6 +9,8 @@ var UserHandler = require('../../models/user');
 var Repository = require('../../models/repository');
 //var utf8 = require('utf8');
 var async = require('async');
+
+var utf8 = require('utf8')
 
 var output = module.exports;
 
@@ -149,20 +152,20 @@ output.find = function(req, res){
  * @param req
  * @param res
  */
-//output.signature = function(req, res) {
-//    var publicId = mongoose.Types.ObjectId().toString();
-//    var timestamp=Math.floor(new Date() / 1000);
-//    var to_sign = "publicid=" + publicId + "&timestamp="+timestamp.toString();
-//    shasum = crypto.createHash('sha1')
-//    shasum.update(utf8.encode(to_sign + config.cloudinary_secret))
-//    var signature = shasum.digest('hex')
-//    res.status(200).json({
-//        signature: signature,
-//        public_id: publicId,
-//        timestamp: timestamp,
-//        api_key: config.cloudinary_apikey
-//    });
-//    res.end();
-//}
+output.signature = function(req, res) {
+    var publicId = mongoose.Types.ObjectId().toString();
+    var timestamp=Math.floor(new Date() / 1000);
+    var to_sign = "publicid=" + publicId + "&timestamp="+timestamp.toString();
+    shasum = crypto.createHash('sha1')
+    shasum.update(utf8.encode(to_sign + Config.cloudinary.secret))
+    var signature = shasum.digest('hex')
+    res.status(200).json({
+        signature: signature,
+        public_id: publicId,
+        timestamp: timestamp,
+        api_key: Config.cloudinary.apiKey
+    });
+    res.end();
+}
 
 

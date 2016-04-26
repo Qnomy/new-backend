@@ -8,7 +8,7 @@ var config = require('../config/config');
  */
 module.exports.validate_inner_services = function(req,res,next){
     if (!config.status.mongodb_alive){
-        res.status(500).json({server:"scarlett", http_status:500, status: {alive: false, inner_services: config.status}, code: 1});
+        res.status(500).json({server:"scarlett", http_status:500, version: 1.1, status: {alive: false, inner_services: config.status}, code: 1});
     } else {
         next();
     }

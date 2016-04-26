@@ -9,7 +9,7 @@ var router = express.Router();
 var sinceTime = moment();
 
 router.get('/', function (req, res){
-    var status = {server:"scarlett", alive: true, since:sinceTime, inner_services: config.status};
+    var status = {server:"scarlett",version: 1.1, alive: true, since:sinceTime, inner_services: config.status};
     console.log("status called.");
     res.json(status);
 });

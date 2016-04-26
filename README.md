@@ -10,7 +10,12 @@ url: localhost:3000/v1/auth/verify
 body {"code": "{SMS_CODE}", "request_id": "{RETURNED_FROM_REGISTER}", "phone_number":"+972528812829"}
 
 result:
-    token, user_id
+ {
+   "has_accounts": false,
+   "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjU3MWVmNTE0MzI1NmY3MTgyODAxYTFiZCIsInJvbGUiOjEsInRva2VuX3R5cGUiOjEsImlhdCI6MTQ2MTY0NjYyNSwiZXhwIjoxNDYxNzMzMDI1LCJpc3MiOiJCdWJibGVZb3UiLCJzdWIiOiJhdXRoIn0.3uspD1Dt9YT5YkCQ_vV6TMLzsGARlOvL-ml6chNrXKPJ5FtWz438RzTbWH-8Vzt5eEqir6T6hocnLAqqlahepQ",
+   "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjU3MWVmNTE0MzI1NmY3MTgyODAxYTFiZCIsInJvbGUiOjEsInRva2VuX3R5cGUiOjIsImlhdCI6MTQ2MTY0NjYyNSwiaXNzIjoiQnViYmxlWW91Iiwic3ViIjoiYXV0aCJ9.zhDUjQE1AEs1549IYJa4unyDrd4X3fBcMvpCdJQTlrKsjrZ5_DrD2hqzzyNltxhgu3vxVRTBfU0B1eTHc0qQWQ",
+   "uid": "571ef5143256f7182801a1bd"
+ }
 
 Secured Api:
 
@@ -149,3 +154,10 @@ body:
     }
   ]
 }
+
+- Get content by id:
+
+
+url: http://host/v1/content/571ef57c3256f7182801a1bf
+headers: authorization: TOKEN
+method: GET

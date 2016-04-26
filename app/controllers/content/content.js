@@ -101,20 +101,20 @@ output.search = function(req, res){
 
 output.get = function(req, res){
     async.waterfall([
-        function (user, callback){
-            ContentHandler.ContentModel.getBy({id: req.params.cid}, function(err, users){
+        function (callback){
+            ContentHandler.ContentModel.findOne({_id: new ObjectId(req.params.cid)}, function(err, content){
                 if (err){
                     callback(err);
-                    return;
+                } else{
+                    callback(err, content);
                 }
-                callback(err, users);
             });
         }
-    ], function (err, users){
+    ], function (err, content){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json(users);
+            res.status(200).json(content);
         }
     });
 };

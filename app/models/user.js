@@ -26,7 +26,7 @@ var userSchema = mongoose.Schema({
 });
 
 userSchema.index({ phone_number: 1 }, { unique: true });
-userSchema.index({ "accounts.social_id": 1, "accounts.type": 1 }, { unique: true });
+userSchema.index({ phone_number: 1 ,"accounts.social_id": 1, "accounts.type": 1 }, { unique: true });
 userSchema.index({ "role": 1 });
 
 /* Model definition */

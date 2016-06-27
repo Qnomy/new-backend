@@ -25,7 +25,7 @@ var contentSchema = mongoose.Schema({
 var geoContentSchema = mongoose.Schema({
     content: Schema.Types.Mixed,
     loc: {
-        type: 'point', 
+        type: {type: String, default: 'Point'},
         coordinates: [Number] 
     },
     created_date : {type: Number, default: (new Date()).getTime()},

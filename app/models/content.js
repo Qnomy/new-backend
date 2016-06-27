@@ -30,7 +30,6 @@ var geoContentSchema = mongoose.Schema({
     },
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String
-    }
 });
 
 var geoContentSchema = mongoose.Schema({

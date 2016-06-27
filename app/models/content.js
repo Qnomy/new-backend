@@ -21,20 +21,28 @@ var contentSchema = mongoose.Schema({
     }
 });
 
+
 var geoContentSchema = mongoose.Schema({
     content: Schema.Types.Mixed,
     loc: {
-        type: [Number],  // [<longitude>, <latitude>]
-        index: '2dsphere'      // create the geospatial index
+        type: 'point', 
+        coordinates: [Number] 
     },
-    created_date : { type: Date, expires: '15m', default: Date.now },
-    user: {
-        uid: String,
-        display_name: String,
-        display_pic: String
+    created_date : {type: Number, default: (new Date()).getTime()},
+    uid: String
     }
 });
-//geoContentSchema.index({ loc: '2d' });
+
+var geoContentSchema = mongoose.Schema({
+    content: Schema.Types.Mixed,
+    location: {
+        type: 'point',
+        coordinates: [Number]
+    },
+    created_date : {type: Number, default: (new Date()).getTime()},
+    uid: String
+    }
+});
 
 
 var pendingContentSchema = mongoose.Schema({

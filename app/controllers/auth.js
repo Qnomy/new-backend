@@ -8,7 +8,7 @@ var SmsHandler = require('../service/sms');
 var ObjectId = require('mongodb').ObjectID;
 var TokenBuilder = require('./token_builder');
 var ErrorHandler = require('./error_handler');
-
+var ResponseBuilder = require("./response_builder")
 var async = require('async');
 
 var output = module.exports;
@@ -30,13 +30,14 @@ output.register = function(req, res){
                     callback(err, request_id);
                 }
             });
+            // callback(null, {request_id: "12345"});
         }
+
     ],function (err, request_id){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json({"request_id": request_id.request_id});
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, {"request_id": request_id.request_id});
         }
     });
 };
@@ -84,8 +85,7 @@ output.verify = function(req, res){
             ErrorHandler.handle(res, err);
         } else {
             tokens.uid = user.id;
-            res.status(200).json(tokens);
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, tokens)
         };
     });
 };
@@ -102,7 +102,7 @@ output.init_account = function(req, res){
             // find a user.
             UserHandler.UserModel.findOne({_id: new ObjectId(req.params.id)}, function(err, user){
                 if (!user){
-                    callback({http_status: 404, message: "The user does not exists in our system."});
+                    callback({http_status: 404, message: "The user does not exist in our system."});
                 } else {
                     callback(err, user);
                 }
@@ -124,8 +124,7 @@ output.init_account = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json({});
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, null);
         };
     });
 };
@@ -143,7 +142,7 @@ output.post_account = function(req, res){
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user){
                 if (!user){
-                    callback({http_status: 404, message: "The user does not exists in our system."});
+                    callback({http_status: 404, message: "The user does not exist in our system."});
                 } else {
                     callback(err, user);
                 }
@@ -158,8 +157,7 @@ output.post_account = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json({});
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, null);
         };
     });
 };
@@ -177,7 +175,7 @@ output.post = function(req, res){
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user){
                 if (!user){
-                    callback({http_status: 404, message: "The user does not exists in our system."});
+                    callback({http_status: 404, message: "The user does not exist in our system."});
                 } else {
                     callback(err, user);
                 }
@@ -194,8 +192,7 @@ output.post = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json({uid: user.id});
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, {uid: user.id});
         };
     });
 }
@@ -212,7 +209,7 @@ output.get = function(req, res){
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)},function(err, user){
                 if (!user){
-                    callback({http_status: 404, message: "The user does not exists in our system."});
+                    callback({http_status: 404, message: "The user does not exist in our system."});
                 } else {
                     callback(err, user);
                 }
@@ -222,8 +219,7 @@ output.get = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json(user);
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, user);
         };
     });
 };
@@ -240,7 +236,7 @@ output.get_accounts = function(req, res){
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)},function(err, user){
                 if (!user){
-                    callback({http_status: 404, message: "The user does not exists in our system."});
+                    callback({http_status: 404, message: "The user does not exist in our system."});
                 } else{
                     callback(err, user);
                 }
@@ -250,8 +246,7 @@ output.get_accounts = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json(user.accounts);
-            res.end();
+            ResponseBuilder.sendResponse(res, 200, user.accounts);
         };
     });
 };

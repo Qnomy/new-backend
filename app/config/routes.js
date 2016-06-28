@@ -8,6 +8,7 @@ var express = require('express');
 
 var authController = require('../controllers/auth');
 var contentController = require('../controllers/content/content');
+var fbWebhookController = require('../controllers/fbwebhook');
 
 var statusController = require('../controllers/status');
 
@@ -39,8 +40,14 @@ module.exports = function (app) {
     contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',contentController.search);
     contentRouter.get('/:cid',contentController.get);
 
+    var fbWebhookRouter = express.Router();
+    fbWebhookRouter.get('/callback', fbWebhookController.get);
+    fbWebhookRouter.post('/callback', fbWebhookController.post);
+    fbWebhookRouter.get('/process-pending', fbWebhookController.processPending);
+
     app.use('',statusController);
     app.use('/v1/auth',authRouter);
     app.post('/v1/upload/sign',contentController.signature);
     app.use('/v1/content',contentRouter);
+    app.use('/v1/fbwebhook',fbWebhookRouter);
 };

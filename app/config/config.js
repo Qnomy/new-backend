@@ -86,8 +86,8 @@ module.exports = {
 
     },
     cloudinary:{
-        secret: "844365664527282",
-        apiKey: "1nbW5NByG-Wpy8vQ_clKIhjABag"
+        apiKey: "844365664527282",
+        secret: "1nbW5NByG-Wpy8vQ_clKIhjABag"
     },
     tokenType: {
         dailyToken: 1,

@@ -22,9 +22,9 @@ var contentSchema = mongoose.Schema({
 });
 
 var geoContentSchema = mongoose.Schema({
-    object_id: String,
+    content: Schema.Types.Mixed,
     loc: {
-        type: [Number],  // [<longitude>, <latitude>]
+        type: [Number],         // [<longitude>, <latitude>]
         index: '2dsphere'      // create the geospatial index
     },
     created_date : { type: Date, expires: '15m', default: Date.now },
@@ -34,12 +34,22 @@ var geoContentSchema = mongoose.Schema({
         display_pic: String
     }
 });
-
 //geoContentSchema.index({ loc: '2d' });
+
+
+var pendingContentSchema = mongoose.Schema({
+    source: Number,
+    timestamp: Date,
+    fields: [String],
+    uid: String
+});
+
+
 
 /* Model definition */
 var contentModel = mongoose.model('Content', contentSchema);
 var geoContentModel = mongoose.model('GeoContent', geoContentSchema);
+var pendingContentModel = mongoose.model('PendingContent', pendingContentSchema);
 
 function geoSearch(criteria, limit, cb){
     geoContentModel.find(criteria).limit(limit).exec(function(err, locations) {
@@ -68,5 +78,6 @@ function geoSearch(criteria, limit, cb){
 module.exports = {
     ContentModel: contentModel,
     GeoContentModel: geoContentModel,
+    PendingContentModel: pendingContentModel,
     geoSearch: geoSearch
 }

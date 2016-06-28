@@ -9,6 +9,7 @@ var UserHandler = require('../../models/user');
 var Repository = require('../../models/repository');
 //var utf8 = require('utf8');
 var async = require('async');
+var ResponseBuilder = require("../response_builder")
 
 var utf8 = require('utf8')
 
@@ -54,9 +55,7 @@ output.post = function(req, res){
         if (err) {
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json({
-                cid:content.id
-            });
+            ResponseBuilder.sendResponse(res, 200, {cid:content.id});
         }
     });
 };
@@ -90,9 +89,7 @@ output.search = function(req, res){
         if (err) {
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json({
-                result: contentItems
-            });
+            ResponseBuilder.sendResponse(res, 200, {result: contentItems});
         }
     });
 
@@ -114,7 +111,7 @@ output.get = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json(content);
+            ResponseBuilder.sendResponse(res, 200, content);
         }
     });
 };
@@ -141,7 +138,7 @@ output.find = function(req, res){
         if (err){
             ErrorHandler.handle(res, err);
         } else {
-            res.status(200).json(users);
+            ResponseBuilder.sendResponse(res, 200, users);
         }
     });
 };
@@ -155,17 +152,11 @@ output.find = function(req, res){
 output.signature = function(req, res) {
     var publicId = mongoose.Types.ObjectId().toString();
     var timestamp=Math.floor(new Date() / 1000);
-    var to_sign = "publicid=" + publicId + "&timestamp="+timestamp.toString();
+    var to_sign = "public_id=" + publicId + "&timestamp="+timestamp.toString() + Config.cloudinary.secret;
     shasum = crypto.createHash('sha1')
-    shasum.update(utf8.encode(to_sign + Config.cloudinary.secret))
+    shasum.update(utf8.encode(to_sign))
     var signature = shasum.digest('hex')
-    res.status(200).json({
-        signature: signature,
-        public_id: publicId,
-        timestamp: timestamp,
-        api_key: Config.cloudinary.apiKey
-    });
-    res.end();
+    ResponseBuilder.sendResponse(res, 200, {signature: signature, public_id: publicId, timestamp: timestamp, api_key: Config.cloudinary.apiKey});
 }
 
 

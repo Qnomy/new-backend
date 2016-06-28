@@ -12,9 +12,9 @@ var fbWebhookController = require('../controllers/fbwebhook');
 
 var statusController = require('../controllers/status');
 
-//var authorizationMiddleware = require('../middlewares/authorization');
+var authorizationMiddleware = require('../middlewares/authorization');
 //
-//var verifyMiddleware = [authorizationMiddleware.token_loader, authorizationMiddleware.credential_token_validation];
+var verifyMiddleware = [authorizationMiddleware.token_loader, authorizationMiddleware.credential_token_validation];
 
 module.exports = function (app) {
 
@@ -30,7 +30,7 @@ module.exports = function (app) {
     //authRouter.post('/init-account/:uid', authController.init_account);
 
     authRouter.post('/account/:uid', authController.post_account);
-    authRouter.get('/account/:uid', authController.get_accounts);
+    authRouter.get('/account/:uid', verifyMiddleware ,authController.get_accounts);
     //authRouter.get('/account/:uid/aid', authController.get_account);
 
 

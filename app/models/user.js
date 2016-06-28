@@ -4,10 +4,12 @@
 
 var mongoose = require('mongoose');
 var config = require('../config/config');
+var FB = require('fb');
 
 var accountSchema = mongoose.Schema({
     type: Number,
     social_id: String,
+    uid: String,
     token: String,
     created_date: { type: Date, default: Date.now },
     meta: mongoose.Schema.Types.Mixed
@@ -22,6 +24,7 @@ var userSchema = mongoose.Schema({
     active: {type: Boolean, default: true },
     role: {type: Number, default: 1 },
     //cid: {type: String }, // Probably it has a credential id linked.
+    loc: [Number],         // [<longitude>, <latitude>]
     accounts: [accountSchema]
 });
 
@@ -51,11 +54,22 @@ function save(user, account_type, account_social_id, account_token, account_meta
     account.social_id = account_social_id;
     account.token = account_token;
     account.meta = account_meta;
-
-    user.accounts.addToSet(account);
-    user.save(function(err, pUser){
-        cb(err, pUser);
-    })
+    if (account_type == 2) {
+        FB.api('/me?access_token=' + account_token, {fields: ['id']}, function (res) {
+            if(res && !res.error) {
+                account.uid = res.id;
+            }
+            user.accounts.addToSet(account);
+            user.save(function(err, pUser){
+                cb(err, pUser);
+            })
+        });
+    } else {
+        user.accounts.addToSet(account);
+        user.save(function(err, pUser){
+            cb(err, pUser);
+        })
+    }
 }
 
 /* Object export */

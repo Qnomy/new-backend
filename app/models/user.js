@@ -24,6 +24,7 @@ var userSchema = mongoose.Schema({
     active: {type: Boolean, default: true },
     role: {type: Number, default: 1 },
     //cid: {type: String }, // Probably it has a credential id linked.
+    loc: [Number],         // [<longitude>, <latitude>]
     accounts: [accountSchema]
 });
 

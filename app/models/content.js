@@ -21,16 +21,20 @@ var contentSchema = mongoose.Schema({
     }
 });
 
-
 var geoContentSchema = mongoose.Schema({
     content: Schema.Types.Mixed,
     loc: {
-        type: {type: String, default: 'Point'},
-        coordinates: [Number] 
+        type: [Number],         // [<longitude>, <latitude>]
+        index: '2dsphere'      // create the geospatial index
     },
-    created_date : {type: Number, default: (new Date()).getTime()},
-    uid: String
+    created_date : { type: Date, expires: '15m', default: Date.now },
+    user: {
+        uid: String,
+        display_name: String,
+        display_pic: String
+    }
 });
+//geoContentSchema.index({ loc: '2d' });
 
 
 var pendingContentSchema = mongoose.Schema({

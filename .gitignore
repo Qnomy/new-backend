@@ -32,3 +32,17 @@ node_modules
 
 # Optional REPL history
 .node_repl_history
+
+# binaries directory
+bin
+# local terminal commands
+.terminal
+
+#local pem files
+staging-ireland.pem
+
+#facebook log files
+fblog.txt
+
+
+

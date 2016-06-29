@@ -19,7 +19,6 @@ function buildTokens(user, cb){
         role: user.role,
         token_type: config.tokenType.dailyToken
     };
-
     jwt.sign(dailyTokenPayload, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(dailyToken) {
         var refreshTokenPayload = {
             id: user.id,

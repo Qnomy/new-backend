@@ -14,7 +14,7 @@ var statusController = require('../controllers/status');
 
 var authorizationMiddleware = require('../middlewares/authorization');
 //
-var verifyMiddleware = [authorizationMiddleware.token_loader, authorizationMiddleware.credential_token_validation];
+var verifyMiddleware = [authorizationMiddleware.token_loader, authorizationMiddleware.token_validation];
 
 module.exports = function (app) {
 
@@ -23,22 +23,22 @@ module.exports = function (app) {
 
     authRouter.post('/register', authController.register);
     authRouter.post('/verify', authController.verify);
-    authRouter.get('/:uid', authController.get);
+    authRouter.get('/:uid', verifyMiddleware, authController.get);
 
-    authRouter.post('/:uid', authController.post);
+    authRouter.post('/:uid', verifyMiddleware, authController.post);
 
     //authRouter.post('/init-account/:uid', authController.init_account);
 
-    authRouter.post('/account/:uid', authController.post_account);
+    authRouter.post('/account/:uid', verifyMiddleware, authController.post_account);
     authRouter.get('/account/:uid', verifyMiddleware ,authController.get_accounts);
     //authRouter.get('/account/:uid/aid', authController.get_account);
 
 
     var contentRouter = express.Router();
 
-    contentRouter.post('/:uid',contentController.post);
-    contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',contentController.search);
-    contentRouter.get('/:cid',contentController.get);
+    contentRouter.post('/:uid',verifyMiddleware, contentController.post);
+    contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',verifyMiddleware, contentController.search);
+    contentRouter.get('/:cid',verifyMiddleware, contentController.get);
 
     var fbWebhookRouter = express.Router();
     fbWebhookRouter.get('/callback', fbWebhookController.get);

@@ -40,7 +40,7 @@ module.exports.token_loader = function(req, res, next){
 };
 
 /**
- * Validates that the token is not old.
+ * Validates that the credentials token is not old.
  * @param req
  * @param res
  * @param next
@@ -48,6 +48,25 @@ module.exports.token_loader = function(req, res, next){
 module.exports.credential_token_validation = function(req, res, next){
     var token = req.params.authorization;
     jwt.verify(token, config.jwt_token.credential_secret, config.jwt_token.options_credential, function(err, payload){
+        if (err){
+            res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid." }});
+            res.end();
+            return;
+        }
+        req.params.token_payload = payload;
+        next();
+    })
+}
+
+/**
+ * Validates that the token is not old.
+ * @param req
+ * @param res
+ * @param next
+ */
+module.exports.token_validation = function(req, res, next){
+    var token = req.params.authorization;
+    jwt.verify(token, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(err, payload){
         if (err){
             res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid." }});
             res.end();

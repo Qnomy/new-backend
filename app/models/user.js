@@ -72,6 +72,13 @@ function save(user, account_type, account_social_id, account_token, account_meta
     }
 }
 
+function updateLocation(user, lat, long, cb) {
+    user.loc = [lat, long];
+    user.save(function(err, pUser){
+        cb(err, pUser);
+    })
+}
+
 /* Object export */
 module.exports = {
     AccountModel: accountModel,
@@ -86,5 +93,6 @@ module.exports = {
         Public: 1,
         Admin: 2
     },
-    save: save
+    save: save,
+    updateLocation: updateLocation
 }

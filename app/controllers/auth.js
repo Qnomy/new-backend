@@ -163,6 +163,30 @@ output.post_account = function(req, res){
     });
 };
 
+output.updateLocation = function(req, res){
+    async.waterfall([
+        function (callback){
+            UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)}, function(err, user) {
+                if (!user){
+                    callback({http_status: 404, message: "The user does not exist in our system."});
+                } else {
+                    callback(err, user);
+                }
+            });
+        },
+        function(user, callback){
+            UserHandler.updateLocation(user, req.body.lat, req.body.long, function(err, user){
+                callback(err, user);
+            });
+        }
+    ],function (err, user){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            ResponseBuilder.sendResponse(res, 200, null);
+        };
+    });
+};
 /**
  * url: /v1/auth/:uid method post
  * {"display_name": "", "display_pic":""}

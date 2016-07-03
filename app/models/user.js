@@ -30,5 +30,5 @@ module.exports = {
     RoleTypes : {
         Public: 1,
         Admin: 2
-    }
+	}
 }

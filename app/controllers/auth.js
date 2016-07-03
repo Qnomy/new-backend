@@ -3,12 +3,13 @@
  */
 
 var UserHandler = require('../models/user');
+var SocialAccountHandler = require('../models/social_account');
 var RepositoryHandler = require('../models/repository');
 var SmsHandler = require('../service/sms');
 var ObjectId = require('mongodb').ObjectID;
 var TokenBuilder = require('./token_builder');
 var ErrorHandler = require('./error_handler');
-var ResponseBuilder = require("./response_builder")
+var ResponseBuilder = require("./response_builder");
 var async = require('async');
 
 var output = module.exports;
@@ -149,11 +150,11 @@ output.post_account = function(req, res){
             });
         },
         function(user, callback){
-            UserHandler.save(user, req.body.type, req.body.social_id, req.body.token, req.body.meta, function(err, user){
-                callback(err, user);
+            SocialAccountHandler.save(user._id, req.body.type, req.body.social_id, req.body.token, function(err, response){
+                callback(err, response);
             });
         }
-    ],function (err, user){
+    ],function (err, response){
         if (err){
             ErrorHandler.handle(res, err);
         } else {

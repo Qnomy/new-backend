@@ -13,7 +13,7 @@ var fbWebhookController = require('../controllers/fbwebhook');
 var statusController = require('../controllers/status');
 
 var authorizationMiddleware = require('../middlewares/authorization');
-//
+
 var verifyMiddleware = [authorizationMiddleware.token_loader, authorizationMiddleware.token_validation];
 
 module.exports = function (app) {
@@ -32,7 +32,6 @@ module.exports = function (app) {
     authRouter.post('/account/:uid', verifyMiddleware, authController.post_account);
     authRouter.get('/account/:uid', verifyMiddleware ,authController.get_accounts);
     //authRouter.get('/account/:uid/aid', authController.get_account);
-    authRouter.post('/update-location/:uid', verifyMiddleware, authController.updateLocation);
 
 
     var contentRouter = express.Router();

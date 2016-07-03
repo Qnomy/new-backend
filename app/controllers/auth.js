@@ -11,6 +11,7 @@ var TokenBuilder = require('./token_builder');
 var ErrorHandler = require('./error_handler');
 var ResponseBuilder = require("./response_builder");
 var async = require('async');
+var extend = require('util')._extend;
 
 var output = module.exports;
 
@@ -234,10 +235,16 @@ output.get = function(req, res){
         function (callback){
             UserHandler.UserModel.findOne({_id:new ObjectId(req.params.uid)},function(err, user){
                 if (!user){
-                    callback({http_status: 404, message: "The user does not exist in our system."});
+                    return callback({http_status: 404, message: "The user does not exist in our system."});
                 } else {
-                    callback(err, user);
+                    return callback(err, user);
                 }
+            });
+        },
+        function(user, callback){
+            SocialAccountHandler.get(user._id, function(err, accounts){
+                var cloned = extend({accounts:accounts}, user);
+                return callback(err, cloned);
             });
         }
     ],function (err, user){

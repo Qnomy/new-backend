@@ -21,6 +21,23 @@ function save(uid, type, social_id, token, cb){
     }
 }
 
+function get(uid, cb){
+    async.series([
+        function(callback){ //BubbleYou
+            callback(null, {bubbleyou:null})
+        }, function(callback){ //Facebook
+            fbAccountModel.findOne({uid: uid}, function(err, account){
+                return callback(err, {facebook:account});
+            });
+        }, function(callback, accounts){ //Twitter
+            callback(null, {twitter:null})
+        }, function(callback, accounts){ //Instagram
+            callback(null, {instagram:null})
+        }], function(err, accounts){
+            cb(err, accounts);
+        });
+}
+
 function saveFacebookAccount(uid, social_id, token, cb){
     async.waterfall([
         function(callback){
@@ -52,5 +69,6 @@ module.exports = {
         Twitter: 3,
         Instagram: 4
     },
-    save: save
+    save: save,
+    get: get
 }

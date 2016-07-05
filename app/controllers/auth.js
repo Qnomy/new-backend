@@ -71,7 +71,7 @@ output.verify = function(req, res){
                 user = new UserHandler.UserModel();
                 user.role = UserHandler.RoleTypes.Public;
                 user.phone_number = req.body.phone_number;
-                user.save(function(err){
+                user.save(function(err) {
                     callback(err, user);
                 });
             };

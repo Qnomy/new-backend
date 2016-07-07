@@ -78,3 +78,30 @@ output.processPending = function (req, res) {
         };
     });
 }
+
+output.insertDemoRows = function (req, res) {
+    async.waterfall([
+        function (callback) {
+            req.body.posts.forEach(function(post) {
+                rec = new ContentHandler.GeoContentModel();
+                rec.source = 1;
+                rec.source_id = post.id;
+                rec.content = post.attachments;
+                // rec.loc = {type:"point", coordinates:[0, 0]};
+                rec.uid = "571f0f780085a9a678664250"
+                rec.save(function(err){
+                    if (err) callback(err);
+                });
+            });
+            callback(null);
+        }
+    ],function (err){
+        if (err){
+            ErrorHandler.handle(res, err);
+        } else {
+            res.status(200).write("ok");
+            res.end();
+            return;
+        };
+    });
+}

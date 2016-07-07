@@ -22,10 +22,12 @@ var contentSchema = mongoose.Schema({
 });
 
 var geoContentSchema = mongoose.Schema({
+    source: Number,
+    source_id: String,
     content: Schema.Types.Mixed,
     loc: {
         type: {type: String, default: 'point'}, 
-        coordinates: [Number] 
+        coordinates: {type: [Number], default: [0, 0]}
     },
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String

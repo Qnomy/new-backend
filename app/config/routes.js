@@ -39,11 +39,13 @@ module.exports = function (app) {
     contentRouter.post('/:uid',verifyMiddleware, contentController.post);
     contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',verifyMiddleware, contentController.search);
     contentRouter.get('/:cid',verifyMiddleware, contentController.get);
+    contentRouter.get("/browse/demo", function (req, res) {res.sendFile(__dirname + '/public/GeoContent.json')});
 
     var fbWebhookRouter = express.Router();
     fbWebhookRouter.get('/callback', fbWebhookController.get);
     fbWebhookRouter.post('/callback', fbWebhookController.post);
     fbWebhookRouter.get('/process-pending', fbWebhookController.processPending);
+    fbWebhookRouter.post('/insert-demo', fbWebhookController.insertDemoRows);
 
     app.use('',statusController);
     app.use('/v1/auth',authRouter);

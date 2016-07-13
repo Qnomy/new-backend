@@ -3,6 +3,7 @@
  */
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var socialAccountHandler = require('./social_account');
 
 /**
  * This schema basically stores the content the user is posting.
@@ -22,7 +23,12 @@ var contentSchema = mongoose.Schema({
 });
 
 var geoContentSchema = mongoose.Schema({
-    content: Schema.Types.Mixed,
+    content: 
+    {
+        type: String,
+        id: String,
+        body: Schema.Types.Mixed
+    },
     loc: {
         type: {type: String, default: 'point'}, 
         coordinates: [Number] 

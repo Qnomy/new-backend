@@ -95,5 +95,12 @@ module.exports = {
         credentialToken: 3,
         registerToken: 4,
     },
-    corsRequest: ['http://admin.bubbleyou.com', 'https://admin.bubbleyou.com']
+    corsRequest: ['http://admin.bubbleyou.com', 'https://admin.bubbleyou.com'],
+    facebook: {
+        client_id: "1547216822238493",
+        client_secret: "31584d28ed8eb65a888fad53b777a70d",
+        webhooks:{
+          verify_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjU3NzE3NTI2ZDhmZmQyMTgyMWUxZmJhMCIsInJvbGUiOjEsInRva2VuX3R5cGUiOjEsImlhdCI6MTQ2NzIwODg4NiwiZXhwIjoxNDY3Mjk1Mjg2LCJpc3MiOiJCdWJibGVZb3UiLCJzdWIiOiJhdXRoIn0.W01xEieb2HKfFvT2jfShn4mjlpYwwSaYEL-W-TKyRoJeYjP8hPF4ea3unM67N4Eo704NS2RfjSKITfBE80PQGg"  
+        }
+    }
 };

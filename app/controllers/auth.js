@@ -71,7 +71,7 @@ output.verify = function(req, res){
                 user = new UserHandler.UserModel();
                 user.role = UserHandler.RoleTypes.Public;
                 user.phone_number = req.body.phone_number;
-                user.save(function(err){
+                user.save(function(err) {
                     callback(err, user);
                 });
             };
@@ -242,7 +242,7 @@ output.get = function(req, res){
             });
         },
         function(user, callback){
-            SocialAccountHandler.get(user._id, function(err, accounts){
+            SocialAccountHandler.getUserAccounts(user._id, function(err, accounts){
                 var cloned = extend({accounts:accounts}, user);
                 return callback(err, cloned);
             });

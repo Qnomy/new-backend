@@ -1,32 +1,22 @@
 var mongoose = require('mongoose');
 var config = require('../config/config');
 var async = require('async');
-
-var fbAccountSchema = mongoose.Schema({
-    uid: String,
-    fbid: String,
-    token: String
-});
-
-fbAccountSchema.index({ uid: 1 }, { unique: true });
-fbAccountSchema.index({ uid: 1, fbid: 1, token: 1 }, { unique: true });
-
-var fbAccountModel = mongoose.model('fbAccount', fbAccountSchema);
+var facebookAccountHandler = require('./social_account/facebook_account');
 
 function save(uid, type, social_id, token, cb){
     switch(type){
         case this.AccountTypes.Facebook:
-            return saveFacebookAccount(uid, social_id, token, cb)
+            return facebookAccountHandler.save(uid, social_id, token, cb)
             break;
     }
 }
 
-function get(uid, cb){
+function getUserAccounts(uid, cb){
     async.series([
         function(callback){ //BubbleYou
             callback(null, {bubbleyou:null})
         }, function(callback){ //Facebook
-            fbAccountModel.findOne({uid: uid}, function(err, account){
+            facebookAccountHandler.findUserAccount(uid, function(err, account){
                 return callback(err, {facebook:account});
             });
         }, function(callback, accounts){ //Twitter
@@ -38,31 +28,21 @@ function get(uid, cb){
         });
 }
 
-function saveFacebookAccount(uid, social_id, token, cb){
-    async.waterfall([
-        function(callback){
-            fbAccountModel.findOne({uid:uid}, function(err, account){
-               return callback(err, account);
+function getSocialAccount(type, social_id, cb){
+    switch(type){
+        case this.AccountTypes.Facebook:
+            facebookAccountHandler.findSocialAccount(social_id, function(err, account){
+                cb(err, account);
             });
-        },
-        function(account, callback){
-            if(!account){
-                account = new fbAccountModel();
-            }
-            account.uid = uid;
-            account.social_id = social_id;
-            account.token = token;
-            account.save(function(err, account){
-               return callback(err, account);
-            })
-    }], function(err, result){
-        cb(err, result);
-    });
+            break;
+        default:
+            cb('Account not found');
+            break;
+    }
 }
 
 /* Object export */
 module.exports = {
-    fbAccountModel: fbAccountModel,
     AccountTypes: {
         BubbleYou: 1,
         Facebook: 2,
@@ -70,5 +50,6 @@ module.exports = {
         Instagram: 4
     },
     save: save,
-    get: get
+    getUserAccounts: getUserAccounts,
+    getSocialAccount: getSocialAccount
 }

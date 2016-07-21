@@ -3,53 +3,53 @@
  */
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var async = require('async');
 var socialAccountHandler = require('./social_account');
-
-/**
- * This schema basically stores the content the user is posting.
- * It contains a content which expect to be the json the client may want to store.
- * It will further be enriched with bubbled and joined count.
- */
-var contentSchema = mongoose.Schema({
-    content: Schema.Types.Mixed,
-    latitude: Number,
-    longitude: Number,
-    created_date : {type: Number, default: (new Date()).getTime()},
-    user: {
-        uid: String,
-        display_name: String,
-        display_pic: String
-    }
-});
+var facebookContentHandler = require('./content/facebook_content');
+var defaultContentHandler = require('./content/default_content');
 
 var geoContentSchema = mongoose.Schema({
-    content: 
-    {
-        type: String,
-        id: String,
-        body: Schema.Types.Mixed
-    },
+    source: Number,
+    source_id: String,
+    content: Schema.Types.Mixed,
     loc: {
         type: {type: String, default: 'point'}, 
-        coordinates: [Number] 
+        coordinates: {type: [Number], default: [0, 0]}
     },
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String
 });
-
-var pendingContentSchema = mongoose.Schema({
-    source: Number,
-    timestamp: Date,
-    fields: [String],
-    uid: String
-});
-
 
 
 /* Model definition */
-var contentModel = mongoose.model('Content', contentSchema);
 var geoContentModel = mongoose.model('GeoContent', geoContentSchema);
-var pendingContentModel = mongoose.model('PendingContent', pendingContentSchema);
+
+function transform(content, type, cb){
+    var socialContentHandler = null;
+    switch(type){
+        case socialAccountHandler.AccountTypes.Facebook:
+            socialContentHandler = facebookContentHandler;
+            break;
+        default:
+            socialContentHandler = defaultContentHandler;
+            break;
+    }
+    var geoContent = new geoContentModel();
+    geoContent.source = type;
+    return socialContentHandler.transform(content, geoContent, cb);
+}
+
+function updateGeoContent(geoContent, cb){
+    geoContentModel.update({source_id: geoContent.source_id}, {$set:{
+        source: geoContent.source,
+        source_id: geoContent.source_id,
+        content: geoContent.content,
+        loc: geoContent.loc,
+        uid: geoContent.uid
+    }}, {upsert: true}, function(err, result){
+        return cb(err, result);
+    });
+}
 
 function geoSearch(criteria, limit, cb){
     geoContentModel.find(criteria).limit(limit).exec(function(err, locations) {
@@ -76,8 +76,8 @@ function geoSearch(criteria, limit, cb){
 
 /* Object export */
 module.exports = {
-    ContentModel: contentModel,
     GeoContentModel: geoContentModel,
-    PendingContentModel: pendingContentModel,
-    geoSearch: geoSearch
+    geoSearch: geoSearch,
+    transform: transform,
+    updateGeoContent: updateGeoContent
 }

@@ -2,50 +2,9 @@ var ErrorHandler = require('./error_handler');
 var ResponseBuilder = require("./response_builder")
 var async = require('async');
 var Config = require('../config/config');
-var FB = require('fb');
-
 var ContentHandler = require('../models/content');
-var socialAccountHandler = require('../models/social_account');
-
-FB.api('oauth/access_token', {
-    client_id: Config.facebook.client_id,
-    client_secret: Config.facebook.client_secret,
-    grant_type: 'client_credentials'
-}, function (res) {
-    if(!res || res.error) {
-        console.log(!res ? 'error occurred' : res.error);
-        return;
-    }
-    FB.setAccessToken(res.access_token);
-});
-
-var transform = function(entry, cb){
-    console.log('and here', '/', entry.uid);
-    async.waterfall(
-        function(callback){
-            
-        }, // get user current location
-        function(callback, content){ // get changed fields objects
-            FB.napi(entry.uid, {fields: entry.changed_fields}, function(error, response) {
-                if(error) {
-                    callback(error);
-                } else {
-                    var changed_fields_obj = [];
-                    entry.changed_fields.forEach(function(field){
-                        if(response[field] && response[field].data){
-                            changed_fields_obj.push(response[field].data[0]);
-                        }
-                    })
-
-                    cb(null, changed_fields_obj);
-                }
-            })
-        },
-        function(callback, content){
-
-        }
-    )
-};
+var UserHandler = require('../models/user');
+var SocialAccountHandler = require('../models/social_account');
 
 var output = module.exports;
 
@@ -61,41 +20,30 @@ output.get = function(req, res){
 };
 
 output.post = function(req, res){
-    console.log('here');
-    var fs = require('fs');
-    fs.appendFile('fblog.txt', Date().toString() + "\n" + JSON.stringify(req.body) + "\n\n", function (err) {});
-    
-    req.body.entry.forEach(function(entry) {
-        transform(entry, function(err, content){
-            console.log('fb content:', content);
-        });    
-    });
-    res.status(200).write("ok");
-};
-
-output.processPending = function (req, res) {
     async.waterfall([
-        function (callback){
-            // ContentHandler.PendingContentModel.find({}, function(err, records) {
-            //     records.forEach(function (rec) {
-            //     })
-            // });
-            FB.api('/me?access_token=EAAVZCL30UfR0BABit45Cw45rAzZCICkbgfuW0TZAcPFtUk18hZBOjpLPMmryYOT56G0oOIaPdw0flMNxCVyXBE4WwZAXa1o3XzuYcU2q95FU9GeLYUHLK5InLo7Ah5BUWPH7ZAOsZBqCE3advsMAmf21WvonGKZBq9ESw62c9ZC8CPJE6Ae8plw1WHg6w9jUSaPIZD', {fields: ['id', 'name', 'location']}, function (res) {
-                if(!res || res.error) {
-                    console.log(!res ? 'error occurred' : res.error);
-                    return;
-                }
-                console.log(res.id);
-                console.log(res.name);
+        function(callback){
+            var entries = req.body.entry;
+            if(entries.length > 0){
+                var entry = entries[0]; // we look at the first entry for now
+                ContentHandler.transform(entry, SocialAccountHandler.AccountTypes.Facebook, function(err, geoContent){
+                    return callback(err, geoContent, entry.uid);
+                })
+            }
+        }, 
+        function(geoContent, social_id, callback){
+            UserHandler.markContentLocation(geoContent, SocialAccountHandler.AccountTypes.Facebook, social_id, function(err, geoContent){
+                return callback(err, geoContent);
+            })
+        },
+        function(geoContent, callback){
+            ContentHandler.updateGeoContent(geoContent, function(err, result){
+                return callback(err, result);
             });
-            callback(null);
-        }
-    ],function (err){
-        if (err){
-            ErrorHandler.handle(res, err);
-        } else {
-            res.end();
-            return;
-        };
-    });
-}
+        }],function(err, result){
+            if (err){
+                ErrorHandler.handle(res, err);
+            }else{
+                ResponseBuilder.sendResponse(res, 200);
+            }
+        });
+};

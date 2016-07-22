@@ -3,9 +3,11 @@
 var fs = require('fs');
 var join = require('path').join;
 var express = require('express');
+var https = require('https');
+var privateKey  = fs.readFileSync('ssl-keys/bubbleyou-private.key', 'utf8');
+var certificate = fs.readFileSync('ssl-keys/bubbleyou-cert.pem', 'utf8');
 
 var app = express();
-
 
 // Contains the models definitino for mongo.
 require('./app/config/models')(app);
@@ -20,6 +22,12 @@ require('./app/config/routes')(app);
 require('./app/config/mongodb');
 
 var port = process.env.PORT || 3000;
-app.listen(port);
+
+https.createServer({
+  key: privateKey,
+  cert: certificate
+}, app).listen(port);
+
+//app.listen(port);
 console.log('Express app started on port ' + port);
 

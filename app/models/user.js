@@ -21,6 +21,7 @@ var userSchema = mongoose.Schema({
         type: {type: String, default: 'point'},
         coordinates: [Number]
     },
+    altitude: Number,
 });
 
 userSchema.index({ phone_number: 1 }, { unique: true });
@@ -30,8 +31,9 @@ userSchema.index({ "role": 1 });
 /* Model definition */
 var userModel = mongoose.model('User', userSchema);
 
-function updateLocation(user, lat, long, cb) {
+function updateLocation(user, lat, long, altitude, cb) {
     user.loc = {type:"point", coordinates:[lat, long]};
+    user.altitude = altitude;
     user.save(function(err, pUser){
         cb(err, pUser);
     })

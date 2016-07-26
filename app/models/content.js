@@ -14,9 +14,9 @@ var geoContentSchema = mongoose.Schema({
     content: Schema.Types.Mixed,
     loc: {
         type: {type: String, default: 'point'}, 
-        coordinates: {type: [Number], default: [0, 0]}
+        coordinates: {type: [Number], default: [0, 0]},
+        altitude: {type: Number, default: 0}
     },
-    altitude: {type: Number, default: 0},
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String
 });

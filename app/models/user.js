@@ -19,9 +19,9 @@ var userSchema = mongoose.Schema({
     //cid: {type: String }, // Probably it has a credential id linked.
     loc: {
         type: {type: String, default: 'point'},
-        coordinates: [Number]
+        coordinates: [Number],
+        altitude: {type: Number, default: 0}
     },
-    altitude: Number,
 });
 
 userSchema.index({ phone_number: 1 }, { unique: true });
@@ -32,8 +32,7 @@ userSchema.index({ "role": 1 });
 var userModel = mongoose.model('User', userSchema);
 
 function updateLocation(user, lat, long, altitude, cb) {
-    user.loc = {type:"point", coordinates:[lat, long]};
-    user.altitude = altitude;
+    user.loc = {type:"point", coordinates:[lat, long], altitude:altitude};
     user.save(function(err, pUser){
         cb(err, pUser);
     })

@@ -2,7 +2,7 @@
  * Created by alan on 4/19/16.
  */
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var schema = mongoose.Schema;
 var async = require('async');
 var socialAccountHandler = require('./social_account');
 var facebookContentHandler = require('./content/facebook_content');
@@ -11,16 +11,18 @@ var defaultContentHandler = require('./content/default_content');
 var geoContentSchema = mongoose.Schema({
     source: Number,
     source_id: String,
-    content: Schema.Types.Mixed,
+    content: schema.Types.Mixed,
     loc: {
-        type: {type: String, default: 'point'}, 
-        coordinates: {type: [Number], default: [0, 0]},
-        altitude: {type: Number, default: 0}
-    },
+        type: {type: String, default: 'Point'}, 
+        coordinates: {type: [Number], default: [0, 0]}    
+	},
+    altitude: {type: Number, default: 0},
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String
 });
 
+/*indexes*/
+geoContentSchema.index({ uid: 1, source: 1 }, { unique: false});
 
 /* Model definition */
 var geoContentModel = mongoose.model('GeoContent', geoContentSchema);
@@ -46,6 +48,7 @@ function updateGeoContent(geoContent, cb){
         source_id: geoContent.source_id,
         content: geoContent.content,
         loc: geoContent.loc,
+        altitude: geoContent.altitude,
         uid: geoContent.uid
     }}, {upsert: true}, function(err, result){
         return cb(err, result);

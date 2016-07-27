@@ -4,7 +4,7 @@ var async = require('async');
 var facebookAccountHandler = require('./social_account/facebook_account');
 
 function save(uid, type, social_id, token, cb){
-    switch(type){
+    switch(parseInt(type)){
         case this.AccountTypes.Facebook:
             return facebookAccountHandler.save(uid, social_id, token, cb)
             break;

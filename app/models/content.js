@@ -14,8 +14,9 @@ var geoContentSchema = mongoose.Schema({
     content: schema.Types.Mixed,
     loc: {
         type: {type: String, default: 'Point'}, 
-        coordinates: {type: [Number], default: [0, 0]}
-    },
+        coordinates: {type: [Number], default: [0, 0]}    
+	},
+    altitude: {type: Number, default: 0},
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String
 });
@@ -47,6 +48,7 @@ function updateGeoContent(geoContent, cb){
         source_id: geoContent.source_id,
         content: geoContent.content,
         loc: geoContent.loc,
+        altitude: geoContent.altitude,
         uid: geoContent.uid
     }}, {upsert: true}, function(err, result){
         return cb(err, result);

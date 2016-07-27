@@ -21,6 +21,7 @@ var userSchema = mongoose.Schema({
         type: {type: String, default: 'Point'},
         coordinates: {type: [Number], default: [0,0]}
     },
+    altitude: {type: Number, default: 0}
 });
 
 userSchema.index({ phone_number: 1 }, { unique: true });
@@ -30,8 +31,9 @@ userSchema.index({ "role": 1 });
 /* Model definition */
 var userModel = mongoose.model('User', userSchema);
 
-function updateLocation(user, lat, long, cb) {
-    user.loc = {type:"point", coordinates:[lat, long]};
+function updateLocation(user, lat, long, altitude, cb) {
+    user.loc = {type:"Point", coordinates:[lat, long]};
+    user.altitude = altitude;
     user.save(function(err, pUser){
         cb(err, pUser);
     })
@@ -56,6 +58,7 @@ function markContentLocation(geoContent, type, social_id, cb){
         }],function(err, user){
             if(!err){
                 geoContent.loc = user.loc;
+                geoContent.altitude = user.altitude;
             }
             cb(err, geoContent);
         });

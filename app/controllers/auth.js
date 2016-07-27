@@ -176,7 +176,7 @@ output.updateLocation = function(req, res){
             });
         },
         function(user, callback){
-            UserHandler.updateLocation(user, req.body.lat, req.body.long, function(err, user){
+            UserHandler.updateLocation(user, req.body.lat, req.body.long, req.body.altitude, function(err, user){
                 callback(err, user);
             });
         }

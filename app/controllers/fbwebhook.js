@@ -40,6 +40,7 @@ output.post = function(req, res){
                 return callback(err, result);
             });
         }],function(err, result){
+            console.log(err);
             if (err){
                 ErrorHandler.handle(res, err);
             }else{

@@ -18,8 +18,8 @@ var userSchema = mongoose.Schema({
     role: {type: Number, default: 1 },
     //cid: {type: String }, // Probably it has a credential id linked.
     loc: {
-        type: {type: String, default: 'point'},
-        coordinates: [Number]
+        type: {type: String, default: 'Point'},
+        coordinates: {type: [Number], default: [0,0]}
     },
 });
 

@@ -81,9 +81,13 @@ var getFeedLastPost = function(fbid, cb){
     	function(callback){
     		FB.napi(fbid, {fields: ['feed']}, function(err, response) {
 		        if(!err){
-		        	var feed = response['feed'].data;
-		        	if(feed.length > 0){
-		        		return callback(err, feed[0]);
+		        	if(response['feed']){
+		        		var feed = response['feed'].data;
+			        	if(feed.length > 0){
+			        		return callback(err, feed[0]);
+			        	}
+		        	}else{
+		        		return callback('no feed found for this user');
 		        	}
 		        }else{
 		        	return callback(err);

@@ -62,37 +62,21 @@ output.post = function(req, res){
 
 
 output.search = function(req, res){
-    async.waterfall([
-        function (callback){
-            ContentHandler.GeoContentModel.find({
-                loc: {
-                    $near: {
-                        $geometry: { type: "Point",  coordinates: [ req.params.longitude, req.params.latitude ] },
-                        $minDistance: Number(req.params.min_distance),
-                        $maxDistance: Number(req.params.max_distance)
-                    }
-                }
-            }).limit(100).exec(function(err, items){
-                callback(err, items);
-            });
-        },
-        function( geoItems, callback) {
-            var contentIds = [];
-            geoItems.forEach(function (geoItem) {
-                contentIds.push(geoItem.object_id);
-            });
-            ContentHandler.ContentModel.find({'_id': {$in: contentIds}}, function (err, contentItems) {
-                callback(err, geoItems, contentItems);
-            })
+    ContentHandler.GeoContentModel.find({
+        loc: {
+            $near: {
+                $geometry: { type: "Point",  coordinates: [ req.params.longitude, req.params.latitude ] },
+                $minDistance: Number(req.params.min_distance),
+                $maxDistance: Number(req.params.max_distance)
+            }
         }
-    ],function (err, geoItems, contentItems) {
+    }).limit(100).exec(function(err, items){
         if (err) {
             ErrorHandler.handle(res, err);
         } else {
-            ResponseBuilder.sendResponse(res, 200, {result: contentItems});
+            ResponseBuilder.sendResponse(res, 200, {result: items});
         }
     });
-
 }
 
 

@@ -5,7 +5,7 @@ var fbAccountSchema = mongoose.Schema({
     uid: String,
     fbid: String,
     st_token: String,
-    lt_token: String
+    lt_token: {type: String, default: null },
 });
 
 fbAccountSchema.index({ uid: 1 }, { unique: true });
@@ -14,7 +14,7 @@ fbAccountSchema.index({ uid: 1, fbid: 1, token: 1 }, { unique: true });
 var fbAccountModel = mongoose.model('fbAccount', fbAccountSchema);
 
 function save(uid, social_id, token, cb){
-    fbAccountModel.update({uid: uid}, {$set: {fbid: social_id, st_token:token}}, {upsert:true}, function(err, result){
+    fbAccountModel.update({uid: uid}, {$set: {fbid: social_id, st_token:token, lt_token:null}}, {upsert:true}, function(err, result){
         cb(err, result);
     });
 }

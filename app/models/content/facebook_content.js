@@ -57,11 +57,11 @@ var transform = function(source, geoContent, cb){
 		    }
 			switch(field){
 				case ObjectTypes.Feed:
-					getFeedLastPost(source.uid, function(err, post){
+					getFeedLastPosts(source.uid, function(err, post){
 						if(!err){
 							geoContent.content = post;
 							geoContent.source_id = post.id;
-							return callback(err, geoContent);
+							callback(err, geoContent);
 						}else{
 							return callback(err);
 						}
@@ -75,7 +75,7 @@ var transform = function(source, geoContent, cb){
 	});
 };
 
-var getFeedLastPost = function(fbid, cb){
+var getFeedLastPosts = function(fbid, cb){
 	// get changed fields objects
     async.waterfall([
     	function(callback){
@@ -83,9 +83,12 @@ var getFeedLastPost = function(fbid, cb){
 		        if(!err){
 		        	if(response['feed']){
 		        		var feed = response['feed'].data;
-			        	if(feed.length > 0){
-			        		return callback(err, feed[0]);
-			        	}
+						feed.forEach(function (post) {
+							callback(null, post);
+						});
+			        	// if(feed.length > 0){
+			        	// 	return callback(err, feed[0]);
+			        	// }
 		        	}else{
 		        		return callback('no feed found for this user');
 		        	}
@@ -96,10 +99,10 @@ var getFeedLastPost = function(fbid, cb){
     	},
     	function(post, callback){
     		FB.napi(post.id, {fields: config.facebook.post_fields}, function(err, response) {
-		        return callback(err, response);
+		        callback(err, response);
 		    });
     	}], function(err, content){
-    		return cb(err, content);
+    		cb(err, content);
     });
 }
 

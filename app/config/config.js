@@ -102,7 +102,7 @@ module.exports = {
         webhooks:{
           verify_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjU3NzE3NTI2ZDhmZmQyMTgyMWUxZmJhMCIsInJvbGUiOjEsInRva2VuX3R5cGUiOjEsImlhdCI6MTQ2NzIwODg4NiwiZXhwIjoxNDY3Mjk1Mjg2LCJpc3MiOiJCdWJibGVZb3UiLCJzdWIiOiJhdXRoIn0.W01xEieb2HKfFvT2jfShn4mjlpYwwSaYEL-W-TKyRoJeYjP8hPF4ea3unM67N4Eo704NS2RfjSKITfBE80PQGg"  
         },
-        post_fields: ['caption', 'created_time', 'description', 'from', 'link', 'message', 'name', 'object_id', 'picture', 'place', 'privacy']
+        post_fields: ['created_time', 'from', 'link', 'message', 'object_id', 'attachments', 'place', 'privacy']
     },
     logger: {
         errorFile: 'logs/error.log',

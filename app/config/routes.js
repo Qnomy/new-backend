@@ -8,6 +8,7 @@ var express = require('express');
 
 var authController = require('../controllers/auth');
 var contentController = require('../controllers/content/content');
+var bubbleController = require('../controllers/bubble');
 var fbWebhookController = require('../controllers/fbwebhook');
 
 var statusController = require('../controllers/status');
@@ -40,7 +41,9 @@ module.exports = function (app) {
     contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',verifyMiddleware, contentController.search);
     contentRouter.get('/:cid',verifyMiddleware, contentController.get);
     contentRouter.get("/browse/demo", function (req, res) {res.sendFile(__dirname + '/public/GeoContent.json')});
-    contentRouter.get("/browse/sandbox", function (req, res) {res.sendFile(__dirname + '/public/fb_sandbox.html')});
+
+    var bubbleRouter = express.Router();
+    bubbleRouter.post('/join/:cid',verifyMiddleware, bubbleController.join);
 
     var fbWebhookRouter = express.Router();
     fbWebhookRouter.get('/callback', fbWebhookController.get);
@@ -51,5 +54,6 @@ module.exports = function (app) {
     app.use('/v1/auth',authRouter);
     app.post('/v1/upload/sign',contentController.signature);
     app.use('/v1/content',contentRouter);
+    app.use('/v1/bubble', bubbleRouter);
     app.use('/v1/fbwebhook',fbWebhookRouter);
 };

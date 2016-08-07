@@ -86,9 +86,6 @@ var getFeedLastPosts = function(fbid, cb){
 						feed.forEach(function (post) {
 							callback(null, post);
 						});
-			        	// if(feed.length > 0){
-			        	// 	return callback(err, feed[0]);
-			        	// }
 		        	}else{
 		        		return callback('no feed found for this user');
 		        	}

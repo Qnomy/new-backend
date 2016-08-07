@@ -1,12 +1,10 @@
-/**
- * Created by alan on 4/19/16.
- */
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 var async = require('async');
 var socialAccountHandler = require('./social_account');
 var facebookContentHandler = require('./content/facebook_content');
 var defaultContentHandler = require('./content/default_content');
+var bubbleHandler = require('./bubble');
 
 var geoContentSchema = mongoose.Schema({
     source: Number,
@@ -18,7 +16,8 @@ var geoContentSchema = mongoose.Schema({
 	},
     altitude: {type: Number, default: 0},
     created_date : {type: Number, default: (new Date()).getTime()},
-    uid: String
+    uid: String,
+    isBubble: {type:Boolean, default: false}
 });
 
 /*indexes*/
@@ -55,27 +54,39 @@ function updateGeoContent(geoContent, cb){
     });
 }
 
+function joinGeoContentBubble(geoContent, user, cb){
+    async.waterfall([
+        function(callback){
+            bubbleHandler.getBubbleByGeoContentId(geoContent._id, function(err, bubble){
+                return callback(err, bubble);
+            });
+        }, function(bubble, callback){
+            bubbleHandler.joinBubble(bubble, user, function(err, bubble){
+                return callback(err, bubble);
+            })
+        }, function(bubble, callback){
+            geoContent.isBubble = true;
+            geoContent.save(function(err){
+                callback(err, bubble);
+            })
+        }], function(err, bubble){
+            cb(err, bubble);
+        })
+}
+
 function geoSearch(criteria, limit, cb){
     geoContentModel.find(criteria).limit(limit).exec(function(err, locations) {
         if (err) {
-            cb(err);
-            return;
+            return cb(err);
         }
-        cb(null,locations);
+        return cb(null,locations);
     });
+}
 
-    //Location.find({
-    //    loc: {
-    //        $near: coords,
-    //        $maxDistance: maxDistance
-    //    }
-    //}).limit(limit).exec(function(err, locations) {
-    //    if (err) {
-    //        return res.json(500, err);
-    //    }
-    //
-    //    res.json(200, locations);
-    //});
+function getGeoContent(geoContentId, cb){
+    geoContentModel.findOne({_id: geoContentId}, function(err, geoContent){
+        cb(err, geoContent);
+    })
 }
 
 /* Object export */
@@ -83,5 +94,7 @@ module.exports = {
     GeoContentModel: geoContentModel,
     geoSearch: geoSearch,
     transform: transform,
-    updateGeoContent: updateGeoContent
+    getGeoContent: getGeoContent,
+    updateGeoContent: updateGeoContent,
+    joinGeoContentBubble: joinGeoContentBubble
 }

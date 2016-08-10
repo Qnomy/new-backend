@@ -44,6 +44,10 @@ module.exports = function (app) {
 
     var bubbleRouter = express.Router();
     bubbleRouter.post('/join/:cid',verifyMiddleware, bubbleController.join);
+    bubbleRouter.get('/message/:bid',verifyMiddleware, bubbleController.getBubbleMessages);
+    bubbleRouter.post('/message/:bid',verifyMiddleware, bubbleController.addBubbleMessage);
+
+
 
     var fbWebhookRouter = express.Router();
     fbWebhookRouter.get('/callback', fbWebhookController.get);

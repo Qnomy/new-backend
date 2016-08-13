@@ -39,6 +39,7 @@ module.exports = {
     },
     status: {},
     rest_api: {
+        page_limit: 10,
         social_validation_url: {
             facebook: "https://graph.facebook.com/me",
             twitter: "https://api.twitter.com/1.1/users/show.json",

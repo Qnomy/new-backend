@@ -1,5 +1,6 @@
 var contentHandler = require('../models/content');
 var bubbleHandler = require('../models/bubble');
+var bubbleMessageHandler = require('../models/bubble/bubble_message');
 var UserHandler = require('../models/user');
 var errorHandler = require('./error_handler');
 var responseBuilder = require("./response_builder");
@@ -33,14 +34,23 @@ function join(req, res){
 
 function getBubbleMessages(req, res){
     async.waterfall([
-        function (callback){
+        function(callback){
             bubbleHandler.getBubble(req.params.bid, function(err, bubble){
-                callback(err, bubble);
+                return callback(err, bubble);
             });
         },
         function(bubble, callback){
-            contentHandler.getBubbleMessages(bubble, function(err, results){
-                callback(err, results);
+        	if(req.params.last){
+        		bubbleHandler.getBubble(req.params.last, function(err, last){
+	                return callback(err, bubble, last);
+	            });
+        	}else{
+        		return callback(null, bubble, null);
+        	}
+        },
+        function(bubble, last, callback){
+            bubbleMessageHandler.getBubbleMessages(bubble, last, req.params.limit, function(err, results){
+                return callback(err, results);
             })
         }
     ],function (err, results){
@@ -61,11 +71,11 @@ function addBubbleMessage(req, res){
         },
         function(bubble, callback){
             UserHandler.getUser(req.body.uid, function(err, user){
-                callback(err,  bubble, user);
+                callback(err, bubble, user);
             });
         },
         function(bubble, user, callback){
-            bubbleHandler.AddBubbleMessage(bubble, user, function(err, message){
+            bubbleMessageHandler.addBubbleMessage(bubble, user, req.body.body, function(err, message){
                 callback(err, message);
             })
         }

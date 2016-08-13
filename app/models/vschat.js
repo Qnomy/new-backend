@@ -2,21 +2,21 @@ var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 var async = require('async');
 
-var vsChatMessageSchema = mongoose.schema({
+var vsChatMessageSchema = mongoose.Schema({
 	from: String,
 	body: String,
 	created_date: { type: Date, default: Date.now }
-})
+});
 
 var vsChatRoomSchema = mongoose.Schema({
 	members: [String],
 	messages: [vsChatMessageSchema]
 });
 
-var vsChatRoomModel = new mongoose.model("vschatroom", vsChatRoomSchema);
+var vsChatRoomModel = mongoose.model('vschatroom', vsChatRoomSchema);
 
 function getRoom(members, cb){
-	vsChatRoomSchema.findOne({members:members}, function(err, room){
+	vsChatRoomModel.findOne({members:members}, function(err, room){
 		if(!room){
 			var room = new vsChatRoomModel({
 				members: members
@@ -36,4 +36,8 @@ function addMessage(room, user, body, cb){
 		body: body
 	});
 
+}
+
+module.exports = {
+	
 }

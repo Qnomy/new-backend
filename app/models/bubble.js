@@ -19,12 +19,17 @@ function updateBubble(geoContentId, bubble, cb){
 	});
 }
 
+function getBubble(bubble_id, cb){
+	bubbleModel.findOne({_id: bubble_id}, function(err, bubble){
+		cb(err, bubble);
+	});
+}
+
 function getBubbleByGeoContentId(geoContentId, cb){
 	bubbleModel.findOne({geoContentId: geoContentId}, function(err, bubble){
 		if(err){
 			return cb(err);
 		}
-		console.log('bubble', bubble);
 		if(!bubble){
 			var bubble = new bubbleModel();
 			bubble.geoContentId = geoContentId;
@@ -54,5 +59,6 @@ function joinBubble(bubble, user, cb){
 module.exports = {
 	bubbleModel: bubbleModel,
 	joinBubble: joinBubble,
+	getBubble: getBubble,
 	getBubbleByGeoContentId: getBubbleByGeoContentId
 };

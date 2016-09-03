@@ -32,6 +32,7 @@ module.exports.caller_loader = function (req, res, next){
  */
 module.exports.token_loader = function(req, res, next){
     var token = req.headers['authorization'];
+    console.log('token:', token);
     if (token){
         token = token.split(" ").pop();
     }
@@ -65,12 +66,12 @@ module.exports.credential_token_validation = function(req, res, next){
  * @param next
  */
 module.exports.token_validation = function(req, res, next){
-    var express = require('express');
+    /*var express = require('express');
     var app = express();
     if (!app.options.key) {//TL: Debug - Do not force token on local server.
         next();
         return;
-    }
+    }*/
     var token = req.params.authorization;
     jwt.verify(token, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(err, payload){
         if (err){

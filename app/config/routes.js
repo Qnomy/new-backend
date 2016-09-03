@@ -9,6 +9,7 @@ var express = require('express');
 var authController = require('../controllers/auth');
 var contentController = require('../controllers/content/content');
 var bubbleController = require('../controllers/bubble');
+var vschatController = require('../controllers/vschat');
 var fbWebhookController = require('../controllers/fbwebhook');
 
 var statusController = require('../controllers/status');
@@ -25,14 +26,9 @@ module.exports = function (app) {
     authRouter.post('/register', authController.register);
     authRouter.post('/verify', authController.verify);
     authRouter.get('/:uid', verifyMiddleware, authController.get);
-
     authRouter.post('/:uid', verifyMiddleware, authController.post);
-
-    //authRouter.post('/init-account/:uid', authController.init_account);
-
     authRouter.post('/account/:uid', verifyMiddleware, authController.post_account);
     authRouter.get('/account/:uid', verifyMiddleware ,authController.get_accounts);
-    //authRouter.get('/account/:uid/aid', authController.get_account);
     authRouter.post('/update-location/:uid', verifyMiddleware, authController.updateLocation);
 
     var contentRouter = express.Router();
@@ -47,6 +43,12 @@ module.exports = function (app) {
     bubbleRouter.get('/messages/:bid/:last?/:limit?',verifyMiddleware, bubbleController.getBubbleMessages);
     bubbleRouter.post('/message/:bid',verifyMiddleware, bubbleController.addBubbleMessage);
 
+    var vschatRouter = express.Router();
+    vschatRouter.post('/join', verifyMiddleware, vschatController.createRoom)
+    vschatRouter.post('/:rid', verifyMiddleware, vschatController.addMessage);
+    vschatRouter.delete('/:rid/:mid', verifyMiddleware, vschatController.removeMessage);
+    vschatRouter.get('/:rid/:last?/:limit?', verifyMiddleware, vschatController.getMessages);
+
     var fbWebhookRouter = express.Router();
     fbWebhookRouter.get('/callback', fbWebhookController.get);
     fbWebhookRouter.post('/callback', fbWebhookController.post);
@@ -56,5 +58,6 @@ module.exports = function (app) {
     app.post('/v1/upload/sign',contentController.signature);
     app.use('/v1/content',contentRouter);
     app.use('/v1/bubble', bubbleRouter);
+    app.use('/v1/vschat', vschatRouter);
     app.use('/v1/fbwebhook',fbWebhookRouter);
 };

@@ -17,7 +17,8 @@ var geoContentSchema = mongoose.Schema({
     altitude: {type: Number, default: 0},
     created_date : {type: Number, default: (new Date()).getTime()},
     uid: String,
-    isBubble: {type:Boolean, default: false}
+    is_bubble: {type:Boolean, default: false},
+    bubble_id: String
 });
 
 /*indexes*/
@@ -65,7 +66,8 @@ function joinGeoContentBubble(geoContent, user, cb){
                 return callback(err, bubble);
             })
         }, function(bubble, callback){
-            geoContent.isBubble = true;
+            geoContent.is_bubble = true;
+            geoContent.bubble_id = bubble._id;
             geoContent.save(function(err){
                 callback(err, bubble);
             })

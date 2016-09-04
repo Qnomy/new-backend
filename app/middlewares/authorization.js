@@ -32,7 +32,6 @@ module.exports.caller_loader = function (req, res, next){
  */
 module.exports.token_loader = function(req, res, next){
     var token = req.headers['authorization'];
-    console.log('token:', token);
     if (token){
         token = token.split(" ").pop();
     }

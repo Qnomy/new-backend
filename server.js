@@ -3,6 +3,7 @@
 var fs = require('fs');
 var join = require('path').join;
 var express = require('express');
+var http = require('http');
 var https = require('https');
 var privateKey  = fs.readFileSync('ssl-keys/bubbleyou-private.key', 'utf8');
 var certificate = fs.readFileSync('ssl-keys/bubbleyou-cert.pem', 'utf8');
@@ -35,12 +36,16 @@ require('./app/config/routes')(app);
 // Contains the mongodb configuration and connection.
 require('./app/config/mongodb');
 
-var port = process.env.PORT || 3000;
+var http_port = process.env.PORT || 3000;
+var https_port = http_port + 10;
+
+http.createServer(app).listen(http_port);
 
 https.createServer({
   key: privateKey,
   cert: certificate
-}, app).listen(port);
+}, app).listen(https_port);
 
-console.log('Express app started on port ' + port);
+console.log('Express http app started on port ' + http_port);
+console.log('Express https app started on port ' + https_port);
 

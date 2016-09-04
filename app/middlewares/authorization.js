@@ -50,7 +50,7 @@ module.exports.credential_token_validation = function(req, res, next){
     var token = req.params.authorization;
     jwt.verify(token, config.jwt_token.credential_secret, config.jwt_token.options_credential, function(err, payload){
         if (err){
-            res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid." }});
+            res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid.", code:401 }});
             res.end();
             return;
         }
@@ -66,16 +66,16 @@ module.exports.credential_token_validation = function(req, res, next){
  * @param next
  */
 module.exports.token_validation = function(req, res, next){
-    /*var express = require('express');
+    var express = require('express');
     var app = express();
     if (!app.options.key) {//TL: Debug - Do not force token on local server.
         next();
         return;
-    }*/
+    }
     var token = req.params.authorization;
     jwt.verify(token, config.jwt_token.daily_secret, config.jwt_token.options_daily, function(err, payload){
         if (err){
-            res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid." }});
+            res.status(401).json({server:config.service_friendly_name, http_status:401, status:{ message: "The credential token is not valid.", code:401 }});
             res.end();
             return;
         }

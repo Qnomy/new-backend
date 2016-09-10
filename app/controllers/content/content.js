@@ -66,11 +66,10 @@ output.search = function(req, res){
         loc: {
             $near: {
                 $geometry: { type: "Point",  coordinates: [ req.params.longitude, req.params.latitude ] },
-                $minDistance: Number(req.params.min_distance),
                 $maxDistance: Number(req.params.max_distance)
             }
         }
-    }).limit(100).exec(function(err, items){
+    }).populate('_bubble').limit(100).exec(function(err, items){
         if (err) {
             ErrorHandler.handle(res, err);
         } else {

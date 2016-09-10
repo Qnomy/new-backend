@@ -34,7 +34,7 @@ module.exports = function (app) {
     var contentRouter = express.Router();
 
     contentRouter.post('/:uid',verifyMiddleware, contentController.post);
-    contentRouter.get('/:longitude/:latitude/:min_distance/:max_distance',verifyMiddleware, contentController.search);
+    contentRouter.get('/:longitude/:latitude/:max_distance',verifyMiddleware, contentController.search);
     contentRouter.get('/:cid',verifyMiddleware, contentController.get);
     contentRouter.get("/browse/demo", function (req, res) {res.sendFile(__dirname + '/public/GeoContent.json')});
 

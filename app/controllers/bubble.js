@@ -57,7 +57,7 @@ function getBubbleMessages(req, res){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, {"messages": results});
+            responseBuilder.sendResponse(res, 200, {'messages': results});
         };
     });
 }

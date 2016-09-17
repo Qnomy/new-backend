@@ -5,6 +5,7 @@ var socialAccountHandler = require('./social_account');
 var facebookContentHandler = require('./content/facebook_content');
 var defaultContentHandler = require('./content/default_content');
 var bubbleHandler = require('./bubble');
+var config = require('../config/config');
 
 var geoContentSchema = mongoose.Schema({
     source: Number,
@@ -76,12 +77,23 @@ function joinGeoContentBubble(geoContent, user, cb){
         })
 }
 
-function geoSearch(criteria, limit, cb){
-    geoContentModel.find(criteria).limit(limit).exec(function(err, locations) {
-        if (err) {
-            return cb(err);
+function geoSearch(lng, lat, distance, limit, last, cb){
+    var criteria = {
+        loc: {
+            $near: {
+                $geometry: { type: "Point",  coordinates: [lng, lat] },
+                $maxDistance: Number(distance || config.rest_api.max_distance)
+            }
         }
-        return cb(null,locations);
+    };
+    var query = geoContentModel.find(criteria).populate('_bubble');
+    query.limit(limit || config.rest_api.page_limit);
+    query.sort('-created_date');
+    if(last){
+        query.where({created_date: {$lte: last.created_date}});
+    }
+    query.exec(function(err, results) {
+        return cb(err, results);
     });
 }
 

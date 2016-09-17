@@ -51,7 +51,7 @@ output.post = function(req, res){
             // TODO: Fill in the timeline of the user !!!!
             callback(null, user, content, geoContent);
         }
-    ],function (err,  user, content,geoContent) {
+    ],function (err, user, content, geoContent) {
         if (err) {
             ErrorHandler.handle(res, err);
         } else {
@@ -60,24 +60,35 @@ output.post = function(req, res){
     });
 };
 
-
 output.search = function(req, res){
-    ContentHandler.GeoContentModel.find({
-        loc: {
-            $near: {
-                $geometry: { type: "Point",  coordinates: [ req.params.longitude, req.params.latitude ] },
-                $maxDistance: Number(req.params.max_distance)
+    async.waterfall([
+        function(callback){
+            if(req.params.last){
+                ContentHandler.getGeoContent(req.params.last, function(err, geoContent){
+                    callback(err, geoContent);
+                });
+            }else{
+                callback(null, null);
             }
-        }
-    }).populate('_bubble').limit(100).exec(function(err, items){
-        if (err) {
-            ErrorHandler.handle(res, err);
-        } else {
-            ResponseBuilder.sendResponse(res, 200, {result: items});
-        }
-    });
+        },
+        function(last, callback){
+            ContentHandler.geoSearch(
+                req.params.longitude, 
+                req.params.latitude, 
+                req.params.max_distance,
+                req.params.limit,
+                last,
+                function(err, results){
+                   callback(err, results); 
+                });
+        }], function(err, results){
+            if (err) {
+                ErrorHandler.handle(res, err);
+            } else {
+                ResponseBuilder.sendResponse(res, 200, {'results': results});
+            }  
+        })
 }
-
 
 output.get = function(req, res){
     async.waterfall([
@@ -98,7 +109,6 @@ output.get = function(req, res){
         }
     });
 };
-
 
 
 output.find = function(req, res){

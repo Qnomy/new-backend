@@ -44,5 +44,8 @@ staging-ireland.pem
 #facebook log files
 fblog.txt
 
+#db dump
+dump
+
 
 

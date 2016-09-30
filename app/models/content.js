@@ -16,7 +16,7 @@ var geoContentSchema = mongoose.Schema({
         coordinates: {type: [Number], default: [0, 0]}    
 	},
     altitude: {type: Number, default: 0},
-    created_date : {type: Number, default: (new Date()).getTime()},
+    created_date : {type: Date, default: Date.now},
     uid: String,
     _bubble: {type: mongoose.Schema.Types.ObjectId, ref: 'bubble'},
     is_bubble: {type: Boolean, default: false}

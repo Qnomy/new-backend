@@ -10,7 +10,11 @@ function join(req, res){
 	async.waterfall([
         function (callback){
             contentHandler.getGeoContent(req.params.cid, function(err, geoContent){
-            	callback(err, geoContent);
+            	if(!err && !geoContent){
+                    callback('No content found with id: ' + req.params.cid)
+                }else{
+                    callback(err, geoContent);
+                }
             });
         },
         function(geoContent, callback){
@@ -41,7 +45,7 @@ function getBubbleMessages(req, res){
         },
         function(bubble, callback){
         	if(req.params.last){
-        		bubbleHandler.getBubble(req.params.last, function(err, last){
+        		bubbleMessageHandler.getBubbleMessage(req.params.last, function(err, last){
 	                return callback(err, bubble, last);
 	            });
         	}else{

@@ -34,20 +34,20 @@ module.exports = function (app) {
     var contentRouter = express.Router();
 
     contentRouter.post('/:uid',verifyMiddleware, contentController.post);
-    contentRouter.get('/:longitude/:latitude/:max_distance?/:limit?/:last?',verifyMiddleware, contentController.search);
+    contentRouter.get('/:longitude/:latitude/:max_distance?/:last?',verifyMiddleware, contentController.search);
     contentRouter.get('/:cid',verifyMiddleware, contentController.get);
     contentRouter.get("/browse/demo", function (req, res) {res.sendFile(__dirname + '/public/GeoContent.json')});
 
     var bubbleRouter = express.Router();
     bubbleRouter.post('/join/:cid',verifyMiddleware, bubbleController.join);
-    bubbleRouter.get('/messages/:bid/:limit?/:last?',verifyMiddleware, bubbleController.getBubbleMessages);
+    bubbleRouter.get('/messages/:bid/:last?',verifyMiddleware, bubbleController.getBubbleMessages);
     bubbleRouter.post('/message/:bid',verifyMiddleware, bubbleController.addBubbleMessage);
 
     var vschatRouter = express.Router();
     vschatRouter.post('/join', verifyMiddleware, vschatController.createRoom)
     vschatRouter.post('/:rid', verifyMiddleware, vschatController.addMessage);
     vschatRouter.delete('/:rid/:mid', verifyMiddleware, vschatController.removeMessage);
-    vschatRouter.get('/:rid/:limit?/:last?', verifyMiddleware, vschatController.getMessages);
+    vschatRouter.get('/:rid/:last?', verifyMiddleware, vschatController.getMessages);
 
     var fbWebhookRouter = express.Router();
     fbWebhookRouter.get('/callback', fbWebhookController.get);

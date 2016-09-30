@@ -1,11 +1,21 @@
 var mongoose = require('mongoose');
+var ObjectId = require('mongodb').ObjectID;
 var config = require('../config/config');
 var async = require('async');
 
 var bubbleSchema = mongoose.Schema({
     geoContentId: String,
     owner: {type: String, default: null},
-    members: [{type: String, default: null}]
+    members: [{type: String, default: null}],
+    _messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'bubble_message'}]
+});
+
+bubbleSchema.virtual('messages_count').get(function(){
+	return this._messages.length;
+});
+
+bubbleSchema.set('toJSON', {
+    virtuals: true
 });
 
 bubbleSchema.index({ geoContentId: 1 }, { unique: true });

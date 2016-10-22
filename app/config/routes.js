@@ -2,11 +2,11 @@
  * Created by alan on 12/17/15.
  */
 var express = require('express');
-//var usersController = require('../controllers/users');
 //var credentialsController = require('../controllers/credentials/credentials');
 
 
 var authController = require('../controllers/auth');
+var userController = require('../controllers/user');
 var contentController = require('../controllers/content/content');
 var bubbleController = require('../controllers/bubble');
 var vschatController = require('../controllers/vschat');
@@ -31,8 +31,11 @@ module.exports = function (app) {
     authRouter.get('/account/:uid', verifyMiddleware ,authController.get_accounts);
     authRouter.post('/update-location/:uid', verifyMiddleware, authController.updateLocation);
 
-    var contentRouter = express.Router();
+    var userRouter = express.Router();
+    userRouter.post('/:uid/device/register', verifyMiddleware, userController.registerUserDevice);
+    userRouter.get('/:uid/activities/:last?/:limit?', verifyMiddleware, userController.getUserActivities);
 
+    var contentRouter = express.Router();
     contentRouter.post('/:uid',verifyMiddleware, contentController.post);
     contentRouter.get('/:longitude/:latitude/:max_distance?/:last?',verifyMiddleware, contentController.search);
     contentRouter.get('/:cid',verifyMiddleware, contentController.get);
@@ -55,6 +58,7 @@ module.exports = function (app) {
 
     app.use('',statusController);
     app.use('/v1/auth',authRouter);
+    app.use('/v1/user', userRouter);
     app.post('/v1/upload/sign',contentController.signature);
     app.use('/v1/content',contentRouter);
     app.use('/v1/bubble', bubbleRouter);

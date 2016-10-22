@@ -1,5 +1,7 @@
 var mongoose = require('mongoose');
-var bubbleHandler = ('../bubble');
+var bubbleHandler = require('../bubble');
+var userHandler = require('../user');
+var userActivityHandler = require('../user_activity');
 var config = require('../../config/config');
 var async = require('async');
 var schema = mongoose.Schema;
@@ -11,7 +13,18 @@ var bubbleMessageSchema = mongoose.Schema({
     created_date : {type: Date, default: Date.now}
 });
 
+bubbleMessageSchema.post('save', function(message){
+	userHandler.getUser(message.from, function(err, user){
+		userActivityHandler.createActivity(
+			userActivityHandler.ActivityTypes.bubbleComment,
+			user,
+			message);
+	})
+});
+
 bubbleMessageSchema.index({ _bubble: 1}, { unique: false });
+
+
 
 bubbleMessageModel = mongoose.model('bubble_message', bubbleMessageSchema);
 

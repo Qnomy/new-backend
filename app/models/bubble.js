@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var ObjectId = require('mongodb').ObjectID;
 var config = require('../config/config');
+var userActivityHandler = require('./user_activity');
 var async = require('async');
 
 var bubbleSchema = mongoose.Schema({
@@ -59,6 +60,12 @@ function joinBubble(bubble, user, cb){
     if(bubble.members.indexOf(user._id) < 0) {
     	bubble.members.push(user._id);
 	    bubble.save(function(err){
+	    	if(!err){
+	    		userActivityHandler.createActivity(
+		    		userActivityHandler.ActivityTypes.bubbleJoin,
+		    		user,
+		    		bubble);
+	    	}
 	    	return cb(err, bubble);
 	    });
 	}else{

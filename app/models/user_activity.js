@@ -5,6 +5,7 @@ var async = require('async');
 var bubbleJoinActivityHandler = require('./user_activity/bubble_join_activity');
 var bubbleCommentActivityHandler = require('./user_activity/bubble_comment_activity');
 var snsHandler = require('../service/sns');
+var userHandler = require('./user.js');
 
 var userActivitySchema = mongoose.Schema({
 	type: Number,
@@ -24,6 +25,15 @@ userActivitySchema.index({ actor: 1}, { unique: false});
 
 /* Model definition */
 var userActivityModel = mongoose.model('user_activity', userActivitySchema);
+
+userActivitySchema.post('save', function(activity){
+	var activityHandler = getActivityHandler(this);
+	async.waterfall([function(callback){
+		activityHandler.createNotification(activity, callback);
+	}, function(notification, callback){
+		snsHandler.sendNotification(notification, callback);
+	}]);
+});
 
 var ActivityTypes = {
 	bubbleJoin: 1,
@@ -49,11 +59,21 @@ function createActivity(type, user, source, cb){
 	var activity = new userActivityModel();
 	activity.type = type;
 	activity.actor = user._id;
-	activity.source_id = source._id; 
-	activity.save(function(err){
-		if(cb){
-			cb(err, activity);
+	activity.source_id = source._id;
+	async.series([function(callback){
+		if(getActivityHandler(activity)){
+			return getActivityHandler(activity).collectActivityInfo(activity, callback);
+		}else{
+			return callback('no implementation for this activity type');
 		}
+	}, function(callback){
+		userHandler.getUser(activity.actor, function(err, user){
+			activity.loc = user.loc;
+            activity.altitude = user.altitude;
+            callback(err);
+		});
+	}], function(err){
+		activity.save(cb);
 	});
 }
 
@@ -70,20 +90,6 @@ function getUserActivities(user, last, limit, cb){
 	query.limit(limit || config.rest_api.page_limit);
 	query.exec(cb);
 }
-
-userActivitySchema.pre('save', function(next){
-	var activityHandler = getActivityHandler(this);
-	activityHandler.collectActivityInfo(this, next);
-});
-
-userActivitySchema.post('save', function(activity){
-	var activityHandler = getActivityHandler(this);
-	async.waterfall([function(callback){
-		activityHandler.createNotification(activity, callback);
-	}, function(notification, callback){
-		snsHandler.sendNotification(notification, callback);
-	}]);
-});
 
 
 module.exports = {

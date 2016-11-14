@@ -20,9 +20,6 @@ output.get = function(req, res){
 };
 
 output.post = function(req, res){
-    // var fs = require('fs');
-    // fs.appendFile('fblog.txt', Date().toString() + "\n" + JSON.stringify(req.body) + "\n\n", function (err) {});
-
     async.waterfall([
         function(callback){
             var entries = req.body.entry;

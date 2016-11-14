@@ -34,7 +34,7 @@ require('./app/config/routes')(app);
 // Contains the kafka configuration and connection.
 //require('./app/config/kafka');
 // Contains the mongodb configuration and connection.
-require('./app/config/mongodb');
+var mongodb = require('./app/config/mongodb');
 
 var http_port = process.env.PORT || 3000;
 var https_port = http_port + 10;

@@ -39,7 +39,7 @@ function join(req, res){
 function getBubbleMessages(req, res){
     async.waterfall([
         function(callback){
-            bubbleHandler.getBubble(req.params.bid, function(err, bubble){
+            bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
                 return callback(err, bubble);
             });
         },
@@ -53,15 +53,19 @@ function getBubbleMessages(req, res){
         	}
         },
         function(bubble, last, callback){
-            bubbleMessageHandler.getBubbleMessages(bubble, last, req.params.limit, function(err, results){
-                return callback(err, results);
+            bubbleMessageHandler.getBubbleMessages(bubble, last, req.params.limit, function(err, messages){
+                return callback(err, messages, bubble);
             })
         }
-    ],function (err, results){
+    ],function (err, messages, bubble){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, {'messages': results});
+            responseBuilder.sendResponse(res, 200, 
+                {
+                    'comments': messages,
+                    'members': bubble.members
+            });
         };
     });
 }
@@ -69,7 +73,7 @@ function getBubbleMessages(req, res){
 function addBubbleMessage(req, res){
     async.waterfall([
         function (callback){
-            bubbleHandler.getBubble(req.params.bid, function(err, bubble){
+            bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
                 callback(err, bubble);
             });
         },

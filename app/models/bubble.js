@@ -16,7 +16,11 @@ bubbleSchema.virtual('messages_count').get(function(){
 });
 
 bubbleSchema.set('toJSON', {
-    virtuals: true
+    virtuals: true,
+    transform: function(doc, ret, options){
+    	delete ret._messages;
+    	return ret;
+    }
 });
 
 bubbleSchema.index({ geoContentId: 1 }, { unique: true });

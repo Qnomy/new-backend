@@ -25,15 +25,15 @@ module.exports = function (app) {
 
     authRouter.post('/register', authController.register);
     authRouter.post('/verify', authController.verify);
-    authRouter.get('/:uid', verifyMiddleware, authController.get);
-    authRouter.post('/:uid', verifyMiddleware, authController.post);
-    authRouter.post('/account/:uid', verifyMiddleware, authController.post_account);
-    authRouter.get('/account/:uid', verifyMiddleware ,authController.get_accounts);
-    authRouter.post('/update-location/:uid', verifyMiddleware, authController.updateLocation);
 
     var userRouter = express.Router();
+    userRouter.get('/:uid', verifyMiddleware, userController.getUser);
+    userRouter.post('/:uid', verifyMiddleware, userController.setUser);
+    userRouter.post('/:uid/account', verifyMiddleware, userController.addSocialAccount);
+    userRouter.get('/:uid/accounts', verifyMiddleware ,userController.getSocialAccounts);
     userRouter.post('/:uid/device/register', verifyMiddleware, userController.registerUserDevice);
     userRouter.get('/:uid/activities/:last?/:limit?', verifyMiddleware, userController.getUserActivities);
+    userRouter.post('/:uid/update-location', verifyMiddleware, userController.updateLocation);
 
     var contentRouter = express.Router();
     contentRouter.post('/:uid',verifyMiddleware, contentController.post);
@@ -42,9 +42,9 @@ module.exports = function (app) {
     contentRouter.get("/browse/demo", function (req, res) {res.sendFile(__dirname + '/public/GeoContent.json')});
 
     var bubbleRouter = express.Router();
-    bubbleRouter.post('/join/:cid',verifyMiddleware, bubbleController.join);
-    bubbleRouter.get('/messages/:bid/:last?',verifyMiddleware, bubbleController.getBubbleMessages);
-    bubbleRouter.post('/message/:bid',verifyMiddleware, bubbleController.addBubbleMessage);
+    bubbleRouter.post('/:cid/join',verifyMiddleware, bubbleController.join);
+    bubbleRouter.get('/:cid/comments/:last?',verifyMiddleware, bubbleController.getBubbleMessages);
+    bubbleRouter.post('/:cid/comment',verifyMiddleware, bubbleController.addBubbleMessage);
 
     var vschatRouter = express.Router();
     vschatRouter.post('/join', verifyMiddleware, vschatController.createRoom)

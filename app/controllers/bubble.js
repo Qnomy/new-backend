@@ -56,15 +56,20 @@ function getBubbleMessages(req, res){
             bubbleMessageHandler.getBubbleMessages(bubble, last, req.params.limit, function(err, messages){
                 return callback(err, messages, bubble);
             })
+        },
+        function(messages, bubble, callback){
+            bubbleHandler.getBubbleMembers(bubble, function(err, members){
+                callback(err, messages, members);
+            })
         }
-    ],function (err, messages, bubble){
+    ],function (err, messages, members){
         if (err){
             errorHandler.handle(res, err);
         } else {
             responseBuilder.sendResponse(res, 200, 
                 {
                     'comments': messages,
-                    'members': bubble.members
+                    'members': members
             });
         };
     });

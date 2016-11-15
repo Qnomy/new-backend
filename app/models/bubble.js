@@ -3,11 +3,16 @@ var ObjectId = require('mongodb').ObjectID;
 var config = require('../config/config');
 var userActivityHandler = require('./user_activity');
 var async = require('async');
+const EventEmitter = require('events');
+
+class BubbleEmitter extends EventEmitter {}
+
+const bubbleEmitter = new BubbleEmitter();
 
 var bubbleSchema = mongoose.Schema({
     geoContentId: String,
     owner: {type: String, default: null},
-    members: [{type: String, default: null}],
+    members: [{type: mongoose.Schema.Types.ObjectId, ref: 'user'}],
     _messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'bubble_message'}]
 });
 
@@ -65,10 +70,12 @@ function joinBubble(bubble, user, cb){
     	bubble.members.push(user._id);
 	    bubble.save(function(err){
 	    	if(!err){
-	    		userActivityHandler.createActivity(
+	    		bubbleEmitter.emit('join');
+	    		/*userActivityHandler.createActivity(
 		    		userActivityHandler.ActivityTypes.bubbleJoin,
 		    		user,
 		    		bubble);
+		    	*/
 	    	}
 	    	return cb(err, bubble);
 	    });

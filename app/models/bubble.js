@@ -12,7 +12,7 @@ const bubbleEmitter = new BubbleEmitter();
 var bubbleSchema = mongoose.Schema({
     geoContentId: String,
     owner: {type: String, default: null},
-    members: [{type: mongoose.Schema.Types.ObjectId, ref: 'user'}],
+    _members: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     _messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'bubble_message'}]
 });
 
@@ -63,11 +63,11 @@ function getBubbleByGeoContentId(geoContentId, cb){
 }
 
 function joinBubble(bubble, user, cb){
-    if(bubble.members.length == 0){
+    if(bubble._members.length == 0){
         bubble.owner = user._id;
     }
-    if(bubble.members.indexOf(user._id) < 0) {
-    	bubble.members.push(user._id);
+    if(bubble._members.indexOf(user._id) < 0) {
+    	bubble._members.push(user._id);
 	    bubble.save(function(err){
 	    	if(!err){
 	    		bubbleEmitter.emit('join');
@@ -84,9 +84,23 @@ function joinBubble(bubble, user, cb){
 	}
 }
 
+function getBubbleMembers(bubble, cb){
+	bubbleModel.findOne({_id:bubble._id})
+    .populate('_members', 'display_name display_pic')
+    .exec(function(err, result){
+    	if(!err){
+    		cb(err, result._members);
+    	}else{
+    		cb(err);
+    	}
+    })
+}
+
 module.exports = {
 	bubbleModel: bubbleModel,
+	emitter: bubbleEmitter,
 	joinBubble: joinBubble,
 	getBubble: getBubble,
-	getBubbleByGeoContentId: getBubbleByGeoContentId
+	getBubbleByGeoContentId: getBubbleByGeoContentId,
+	getBubbleMembers: getBubbleMembers
 };

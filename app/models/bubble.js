@@ -1,13 +1,10 @@
 var mongoose = require('mongoose');
 var ObjectId = require('mongodb').ObjectID;
 var config = require('../config/config');
-var userActivityHandler = require('./user_activity');
 var async = require('async');
-const EventEmitter = require('events');
+var events = require('events');
 
-class BubbleEmitter extends EventEmitter {}
-
-const bubbleEmitter = new BubbleEmitter();
+var bubbleEmitter = new events.EventEmitter();
 
 var bubbleSchema = mongoose.Schema({
     geoContentId: String,
@@ -70,12 +67,7 @@ function joinBubble(bubble, user, cb){
     	bubble._members.push(user._id);
 	    bubble.save(function(err){
 	    	if(!err){
-	    		bubbleEmitter.emit('join');
-	    		/*userActivityHandler.createActivity(
-		    		userActivityHandler.ActivityTypes.bubbleJoin,
-		    		user,
-		    		bubble);
-		    	*/
+	    		bubbleEmitter.emit('join', bubble, user);
 	    	}
 	    	return cb(err, bubble);
 	    });

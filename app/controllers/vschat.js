@@ -39,7 +39,7 @@ function getMessages(req, res){
         if (err){
             errorHandler.handle(res, err);
         } else {
-			responseBuilder.sendResponse(res, 200, {'comments': results});
+			responseBuilder.sendResponse(res, 200, {'messages': results});
         };
     });
 }

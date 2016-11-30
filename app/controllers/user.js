@@ -26,7 +26,7 @@ function getUser(req, res){
         }
     ],function (err, user){
         if (err){
-            ErrorHandler.handle(res, err);
+            errorHandler.handle(res, err);
         } else {
             responseBuilder.sendResponse(res, 200, user);
         };

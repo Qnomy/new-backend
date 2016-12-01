@@ -1,37 +1,63 @@
-/**
- * Created by alan on 12/27/15.
- */
-
+var FB = require('fb');
 var config = require('../config/config');
-var RestClient = require('node-rest-client').Client;
-var httpClient = new RestClient();
+var async = require('async');
+
+var setAccessToken = function(fbid, cb){
+    var fbAccountHandler = require('../models/social_account/facebook_account');
+    fbAccountHandler.findSocialAccount(fbid, function(err, account){
+        FB.setAccessToken(account.lt_token);
+        return cb(err, account);
+    });
+}
+
+var generateLongTermAccessToken = function(st_token, cb){
+    FB.api('oauth/access_token', {
+        grant_type: 'fb_exchange_token',
+        client_id: config.facebook.client_id,
+        client_secret: config.facebook.client_secret,
+        fb_exchange_token: st_token
+    }, function (res) {
+        if(!res || res.error) {
+            return cb(res.error);
+        }
+        return cb(null, res.access_token);
+    });
+}
+
+var getFeedLastPosts = function(fbid, cb){
+    // get changed fields objects
+    async.waterfall([
+        function(callback){
+            setAccessToken(fbid, function(err){
+                return callback(err);
+            });
+        },
+        function(callback){
+            FB.napi(fbid, {fields: ['feed']}, function(err, response) {
+                if(!err){
+                    if(response['feed']){
+                        var feed = response['feed'].data;
+                        feed.forEach(function (post) {
+                            callback(null, post);
+                        });
+                    }else{
+                        return callback('no feed found for this user');
+                    }
+                }else{
+                    return callback(err);
+                }
+            });
+        },
+        function(post, callback){
+            FB.napi(post.id, {fields: config.facebook.post_fields}, function(err, response) {
+                callback(err, response);
+            });
+        }], function(err, content){
+            cb(err, content);
+    });
+}
 
 module.exports = {
-    validate: function (token, cb){
-        var queryUrl = config.rest_api.social_validation_url.facebook;
-        var args = config.rest_api.default_config;
-        args.parameters = { access_token: token};
-        httpClient.get(queryUrl, args, function(data, response){
-            var err = null;
-            if (response.statusCode != 200){
-                err = {status: response.statusCode, message: response.statusMessage};
-            }
-            if (cb != null){
-                cb(err);
-            }
-        }).on('requestTimeout',function(req){
-            if (cb != null){
-                cb({status: 500, message: "Request timeout"});
-            }
-            req.abort();
-        }).on('responseTimeout',function(res){
-            if (cb != null){
-                cb({status: 500, message: "Response timeout"});
-            }
-        }).on('error', function(err){
-            if (cb != null){
-                cb({status: 400, message: "General error", error: err});
-            }
-        });
-    }
+    generateLongTermAccessToken: generateLongTermAccessToken,
+    getFeedLastPosts: getFeedLastPosts
 }

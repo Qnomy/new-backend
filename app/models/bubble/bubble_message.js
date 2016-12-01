@@ -1,10 +1,12 @@
 var mongoose = require('mongoose');
 var bubbleHandler = require('../bubble');
 var userHandler = require('../user');
-var userActivityHandler = require('../user_activity');
 var config = require('../../config/config');
 var async = require('async');
 var schema = mongoose.Schema;
+var events = require('events');
+
+var bubbleMessageEmitter = new events.EventEmitter();
 
 var bubbleMessageSchema = mongoose.Schema({
     _bubble: {type: mongoose.Schema.Types.ObjectId, ref: 'bubble'},
@@ -15,11 +17,8 @@ var bubbleMessageSchema = mongoose.Schema({
 
 bubbleMessageSchema.post('save', function(message){
 	userHandler.getUser(message.from, function(err, user){
-		userActivityHandler.createActivity(
-			userActivityHandler.ActivityTypes.bubbleComment,
-			user,
-			message);
-	})
+		bubbleMessageEmitter.emit('comment', message, user);
+	});
 });
 
 bubbleMessageSchema.index({ _bubble: 1}, { unique: false });
@@ -67,5 +66,6 @@ function addBubbleMessage(bubble, user, body, cb){
 module.exports = {
 	getBubbleMessages: getBubbleMessages,
 	getBubbleMessage: getBubbleMessage,
-	addBubbleMessage: addBubbleMessage
+	addBubbleMessage: addBubbleMessage,
+	emitter: bubbleMessageEmitter,
 }

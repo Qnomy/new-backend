@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
-var config = require('../../config/config');
+var fbService = require('../../service/facebook');
+var async = require('async');
 
 var fbAccountSchema = mongoose.Schema({
     uid: String,
@@ -13,8 +14,16 @@ fbAccountSchema.index({ uid: 1, fbid: 1, token: 1 }, { unique: true });
 
 var fbAccountModel = mongoose.model('fbAccount', fbAccountSchema);
 
-function save(uid, social_id, token, cb){
-    fbAccountModel.update({uid: uid}, {$set: {fbid: social_id, st_token:token, lt_token:null}}, {upsert:true}, function(err, result){
+function save(uid, social_id, st_token, cb){
+    async.waterfall([function(callback){
+        fbService.generateLongTermAccessToken(st_token, function(err, lt_token){
+            callback(err, lt_token);
+        })
+    }, function(lt_token, callback){
+        fbAccountModel.update({uid: uid}, {$set: {fbid: social_id, st_token:st_token, lt_token:lt_token}}, {upsert:true}, function(err, result){
+            callback(err, result);
+        });
+    }], function(err, result){
         cb(err, result);
     });
 }

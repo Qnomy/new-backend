@@ -1,34 +1,37 @@
 var FB = require('fb');
-var fbAccountHandler = require('../social_account/facebook_account');
+var config = require('../config/config');
+var async = require('async');
 
-var generateLongTermAccessToken = function(account, cb){
-    async.waterfall([
-        function(callback){
-            FB.api('oauth/access_token', {
-                grant_type: 'fb_exchange_token',
-                client_id: config.facebook.client_id,
-                client_secret: config.facebook.client_secret,
-                fb_exchange_token: account.st_token
-            }, function (res) {
-                if(!res || res.error) {
-                    return callback(res.error);
-                }
-                return callback(null, res.access_token);
-            });
-        },
-        function(token,  callback){
-            fbAccountHandler.updateLongtermAccessToken(account, token, function(err, result){
-                account.lt_token = token;
-                return callback(err, token);
-            })
-        }], function(err, token){
-            cb(err, token);
-        });
+var setAccessToken = function(fbid, cb){
+    var fbAccountHandler = require('../models/social_account/facebook_account');
+    fbAccountHandler.findSocialAccount(fbid, function(err, account){
+        FB.setAccessToken(account.lt_token);
+        return cb(err, account);
+    });
+}
+
+var generateLongTermAccessToken = function(st_token, cb){
+    FB.api('oauth/access_token', {
+        grant_type: 'fb_exchange_token',
+        client_id: config.facebook.client_id,
+        client_secret: config.facebook.client_secret,
+        fb_exchange_token: st_token
+    }, function (res) {
+        if(!res || res.error) {
+            return cb(res.error);
+        }
+        return cb(null, res.access_token);
+    });
 }
 
 var getFeedLastPosts = function(fbid, cb){
     // get changed fields objects
     async.waterfall([
+        function(callback){
+            setAccessToken(fbid, function(err){
+                return callback(err);
+            });
+        },
         function(callback){
             FB.napi(fbid, {fields: ['feed']}, function(err, response) {
                 if(!err){

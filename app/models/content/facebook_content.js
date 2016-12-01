@@ -1,12 +1,11 @@
 var config = require('../../config/config');
 var fbAccountHandler = require('../social_account/facebook_account');
+var fbService = require('../../service/facebook');
 var async = require('async');
 
 var ObjectTypes = {
 		Feed: 'feed'
 	};
-
-
 
 var transform = function(source, geoContent, cb){
 	async.waterfall([
@@ -25,7 +24,6 @@ var transform = function(source, geoContent, cb){
 			}
 		},
 		function(account, callback){
-			FB.setAccessToken(account.lt_token);
 			var fields = source.changed_fields;
 		    var field = null;
 		    if(fields.length > 0){
@@ -33,7 +31,7 @@ var transform = function(source, geoContent, cb){
 		    }
 			switch(field){
 				case ObjectTypes.Feed:
-					getFeedLastPosts(source.uid, function(err, post){
+					fbService.getFeedLastPosts(source.uid, function(err, post){
 						if(!err){
 							geoContent.content = post;
 							geoContent.source_id = post.id;

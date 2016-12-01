@@ -3,11 +3,12 @@ var ObjectId = require('mongodb').ObjectID;
 var config = require('../config/config');
 var async = require('async');
 var events = require('events');
+var contentHandler = require('./content');
 
 var bubbleEmitter = new events.EventEmitter();
 
 var bubbleSchema = mongoose.Schema({
-    geoContentId: String,
+    geoContentId: {type: mongoose.Schema.Types.ObjectId, ref: 'GeoContent'},
     owner: {type: String, default: null},
     _members: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     _messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'bubble_message'}]
@@ -86,6 +87,20 @@ function getBubbleMembers(bubble, cb){
     		cb(err);
     	}
     })
+}
+
+function disconectBubble(bubble, cb){
+	async.waterfall([function(callback){
+		contentHandler.getGeoContent(bubble.geoContentId, function(err, geoContent){
+			return callback(err, geoContent);
+		});
+	}, function(geoContent, callback){
+		contentHandler.disconnectGeoContentBubble(geoContent, function(err, result){
+			return callback(err, result);
+		})
+	}], function(err, result){
+		return cb(err, result);
+	})
 }
 
 module.exports = {

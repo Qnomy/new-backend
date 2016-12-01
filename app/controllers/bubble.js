@@ -36,6 +36,28 @@ function join(req, res){
     });
 }
 
+function disconnect(req, res){
+    async.waterfall([function(callback){
+        contentHandler.getGeoContent(req.params.cid, function(err, geoContent){
+            if(!err && !geoContent){
+                return callback('No content found with id: ' + req.params.cid)
+            }else{
+                return callback(err, geoContent);
+            }
+        });
+    }, function(geoContent, callback){
+        contentHandler.disconnectGeoContentBubble(geoContent, function(err, result){
+            return callback(err, result);
+        })
+    }],function(err, result){
+        if (err){
+            errorHandler.handle(res, err);
+        } else {
+            responseBuilder.sendResponse(res, 200, result);
+        };
+    })
+}
+
 function getBubbleMessages(req, res){
     async.waterfall([
         function(callback){
@@ -103,6 +125,7 @@ function addBubbleMessage(req, res){
 
 module.exports = {
 	join: join,
+    disconnect: disconnect,
     getBubbleMessages: getBubbleMessages,
     addBubbleMessage: addBubbleMessage
 }

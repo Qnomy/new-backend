@@ -43,6 +43,7 @@ module.exports = function (app) {
 
     var bubbleRouter = express.Router();
     bubbleRouter.post('/:cid/join',verifyMiddleware, bubbleController.join);
+    bubbleRouter.get('/:cid/disconnect',verifyMiddleware, bubbleController.disconnect);
     bubbleRouter.get('/:cid/comments/:last?',verifyMiddleware, bubbleController.getBubbleMessages);
     bubbleRouter.post('/:cid/comment',verifyMiddleware, bubbleController.addBubbleMessage);
 

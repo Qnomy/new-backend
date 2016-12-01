@@ -4,7 +4,6 @@ var async = require('async');
 var socialAccountHandler = require('./social_account');
 var facebookContentHandler = require('./content/facebook_content');
 var defaultContentHandler = require('./content/default_content');
-var bubbleHandler = require('./bubble');
 var config = require('../config/config');
 
 var geoContentSchema = mongoose.Schema({
@@ -57,6 +56,7 @@ function updateGeoContent(geoContent, cb){
 }
 
 function joinGeoContentBubble(geoContent, user, cb){
+    var bubbleHandler = require('./bubble');
     async.waterfall([
         function(callback){
             bubbleHandler.getBubbleByGeoContentId(geoContent._id, function(err, bubble){
@@ -75,6 +75,12 @@ function joinGeoContentBubble(geoContent, user, cb){
         }], function(err, bubble){
             cb(err, bubble);
         })
+}
+
+function disconnectGeoContentBubble(geoContent, cb){
+    geoContent._bubble = null;
+    geoContent.is_bubble = false;
+    return geoContent.save(cb);
 }
 
 function geoSearch(lng, lat, distance, limit, last, cb){
@@ -103,6 +109,7 @@ function getGeoContent(geoContentId, cb){
     })
 }
 
+
 /* Object export */
 module.exports = {
     GeoContentModel: geoContentModel,
@@ -110,5 +117,6 @@ module.exports = {
     transform: transform,
     getGeoContent: getGeoContent,
     updateGeoContent: updateGeoContent,
-    joinGeoContentBubble: joinGeoContentBubble
+    joinGeoContentBubble: joinGeoContentBubble,
+    disconnectGeoContentBubble: disconnectGeoContentBubble
 }

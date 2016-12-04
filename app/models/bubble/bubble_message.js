@@ -32,7 +32,7 @@ function getBubbleMessages(bubble, last, limit, cb){
 	if(last){
 		query.where({created_date: {$lte: last.created_date}});
 	}
-	query.sort('-created_date');
+	query.sort('+created_date');
 	query.limit(limit || config.rest_api.page_limit);
 	query.exec(function(err, results){
 		cb(err, results);

@@ -46,6 +46,7 @@ module.exports = function (app) {
     bubbleRouter.get('/:cid/disconnect',verifyMiddleware, bubbleController.disconnect);
     bubbleRouter.get('/:cid/comments/:last?',verifyMiddleware, bubbleController.getBubbleMessages);
     bubbleRouter.post('/:cid/comment',verifyMiddleware, bubbleController.addBubbleMessage);
+    bubbleRouter.post('/:cid/block',verifyMiddleware, bubbleController.blockBubble);
 
     var vschatRouter = express.Router();
     vschatRouter.post('/join', verifyMiddleware, vschatController.createRoom)

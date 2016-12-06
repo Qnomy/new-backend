@@ -123,9 +123,36 @@ function addBubbleMessage(req, res){
     });
 }
 
+function blockBubble(req, res){
+    async.waterfall([
+        function (callback){
+            bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
+                callback(err, bubble);
+            });
+        },
+        function(bubble, callback){
+            UserHandler.getUser(req.body.uid, function(err, user){
+                callback(err, bubble, user);
+            });
+        },
+        function(bubble, user, callback){
+            bubbleHandler.blockBubbleMessage(bubble, user, function(err, result){
+                callback(err, result);
+            })
+        }
+    ],function (err, result){
+        if (err){
+            errorHandler.handle(res, err);
+        } else {
+            responseBuilder.sendResponse(res, 200, result);
+        };
+    });
+}
+
 module.exports = {
 	join: join,
     disconnect: disconnect,
     getBubbleMessages: getBubbleMessages,
-    addBubbleMessage: addBubbleMessage
+    addBubbleMessage: addBubbleMessage,
+    blockBubble: blockBubble
 }

@@ -11,7 +11,7 @@ var vsChatMessageSchema = mongoose.Schema({
 });
 
 var vsChatRoomSchema = mongoose.Schema({
-	members: [String],
+	members: [{_user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}, active: Boolean}],
 	messages: [vsChatMessageSchema]
 });
 

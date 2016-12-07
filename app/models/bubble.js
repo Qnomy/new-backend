@@ -62,23 +62,27 @@ function getBubbleByGeoContentId(geoContentId, cb){
 }
 
 function joinBubble(bubble, user, cb){
-	getBubbleMembers(bubble, function(err, members){
+	getBubbleWithMembers(bubble, function(err, bubble){
 		if(err){
 			return cb(err)
 		}else{
-			if(members.length == 0){
+			if(bubble.members.length == 0){
 		        bubble._owner = user._id;
 		    }
 
-		    if(_.where(members,{_user: user._id}).length == 0) {
-		    	bubble.members.push({
-		    		_user: user._id,
-		    		active: true
-		    	});
-			}
+		    var member = _.find(bubble.members,function(member){
+		    	return member._user._id.toString() == user._id;
+		    });
+		    if(!member) {
+		    	member = {
+		    		_user: user._id
+		    	};
+		    	bubble.members.push(member);
+			};
+			member.active = true;
 			bubble.save(function(err){
 		    	if(!err){
-		    		//bubbleEmitter.emit('join', bubble, user);
+		    		bubbleEmitter.emit('join', bubble, user);
 		    	}
 		    	return cb(err, bubble);
 		    });
@@ -127,7 +131,9 @@ function blockBubble(bubble, user, cb){
 		if(err){
 			return cb(err);
 		}else{
-			var member = _.findWhere(bubble.members, {_user: user._id});
+			var member = _.find(bubble.members, function(member){
+				return member._user._id.toString() == user._id;
+			});
 			if(!member){
 				return cb('the user is not a member of this bubble');
 			}

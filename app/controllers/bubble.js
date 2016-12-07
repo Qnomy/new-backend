@@ -10,7 +10,7 @@ function join(req, res){
 	async.waterfall([
         function (callback){
             contentHandler.getGeoContent(req.params.cid, function(err, geoContent){
-            	if(!err && !geoContent){
+                if(!err && !geoContent){
                     callback('No content found with id: ' + req.params.cid)
                 }else{
                     callback(err, geoContent);
@@ -136,7 +136,7 @@ function blockBubble(req, res){
             });
         },
         function(bubble, user, callback){
-            bubbleHandler.blockBubbleMessage(bubble, user, function(err, result){
+            bubbleHandler.blockBubble(bubble, user, function(err, result){
                 callback(err, result);
             })
         }

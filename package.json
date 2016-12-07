@@ -15,7 +15,7 @@
     "winston": "2.1.1",
     "express-winston": "~2.1.0",
     "mongoose": "4.3.1",
-    "fb": "~2.1.0",
+    "fb": "~1.1.1",
     "kafka-node": "0.2.29",
     "moment-timezone": "0.4.1",
     "jsonschema": "1.0.2",

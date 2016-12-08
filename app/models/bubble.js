@@ -4,6 +4,7 @@ var config = require('../config/config');
 var async = require('async');
 var events = require('events');
 var contentHandler = require('./content');
+var bubbleMessageHandler = require('./bubble/bubble_message');
 var _ = require('underscore');
 
 var bubbleEmitter = new events.EventEmitter();
@@ -112,15 +113,29 @@ function getBubbleMembers(bubble, cb){
 	});
 }
 
+function removeBubble(bubble, cb){
+	async.series([function(callback){
+		return bubbleMessageHandler.removeBubbleMessages(bubble,callback);
+	}, function(callback){
+		return bubble.remove(callback);
+	}], function(err, result){
+		return cb(err, result);
+	});
+}
+
 function disconectBubble(bubble, cb){
 	async.waterfall([function(callback){
-		contentHandler.getGeoContent(bubble._geoContentId, function(err, geoContent){
-			return callback(err, geoContent);
+		return contentHandler.getGeoContent(bubble._geoContentId, function(err, geoContent){
+			callback(err, geoContent);
 		});
 	}, function(geoContent, callback){
-		contentHandler.disconnectGeoContentBubble(geoContent, function(err, result){
-			return callback(err, result);
+		return contentHandler.disconnectGeoContentBubble(geoContent, function(err, result){
+			callback(err, result);
 		})
+	}, function(result, callback){
+		return removeBubble(bubble, function(err, result){
+			callback(err, result);
+		});
 	}], function(err, result){
 		return cb(err, result);
 	})
@@ -147,6 +162,7 @@ module.exports = {
 	bubbleModel: bubbleModel,
 	emitter: bubbleEmitter,
 	joinBubble: joinBubble,
+	disconectBubble: disconectBubble,
 	blockBubble: blockBubble,
 	getBubble: getBubble,
 	getBubbleByGeoContentId: getBubbleByGeoContentId,

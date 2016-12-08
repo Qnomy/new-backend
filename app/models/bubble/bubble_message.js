@@ -63,9 +63,14 @@ function addBubbleMessage(bubble, user, body, cb){
 	});
 }
 
+function removeBubbleMessages(bubble, cb){
+	return bubbleMessageModel.remove({'_bubble': bubble}, cb);
+}
+
 module.exports = {
 	getBubbleMessages: getBubbleMessages,
 	getBubbleMessage: getBubbleMessage,
 	addBubbleMessage: addBubbleMessage,
+	removeBubbleMessages: removeBubbleMessages,
 	emitter: bubbleMessageEmitter,
 }

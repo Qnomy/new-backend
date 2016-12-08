@@ -38,15 +38,11 @@ function join(req, res){
 
 function disconnect(req, res){
     async.waterfall([function(callback){
-        contentHandler.getGeoContent(req.params.cid, function(err, geoContent){
-            if(!err && !geoContent){
-                return callback('No content found with id: ' + req.params.cid)
-            }else{
-                return callback(err, geoContent);
-            }
+        bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
+           return callback(err, bubble);
         });
-    }, function(geoContent, callback){
-        contentHandler.disconnectGeoContentBubble(geoContent, function(err, result){
+    }, function(bubble, callback){
+        bubbleHandler.disconectBubble(bubble, function(err, result){
             return callback(err, result);
         })
     }],function(err, result){

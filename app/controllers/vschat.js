@@ -19,7 +19,11 @@ function getMessages(req, res){
 	async.waterfall([
         function(callback){
             vschatHandler.getRoom(req.params.rid, function(err, room){
-                return callback(err, room);
+                if(!err && !room){
+					return callback('vschat room was not found');
+				}else{
+					return callback(err, room);
+				}
             });
         },
         function(room, callback){
@@ -48,12 +52,20 @@ function addMessage(req, res){
 	async.waterfall([
 		function(callback){
 			vschatHandler.getRoom(req.params.rid, function(err, room){
-				return callback(err, room);
+				if(!err && !room){
+					return callback('vschat room was not found');
+				}else{
+					return callback(err, room);
+				}
 			});
 		},
 		function(room, callback){
 			userHandler.getUser(req.body.uid, function(err, user){
-				return callback(err, room, user);
+				if(!err && !user){
+					return callback('user was not found');
+				}else{
+					return callback(err, room, user);
+				}
 			})
 		}, function(room, user, callback){
 			vschatHandler.addMessage(room, user, req.body.body, function(err, message){
@@ -72,7 +84,11 @@ function removeMessage(req, res){
 	async.waterfall([
 		function(callback){
 			vschatHandler.getRoom(req.params.rid, function(err, room){
-				return callback(err, room);
+				if(!err && !room){
+					return callback('vschat room was not found');
+				}else{
+					return callback(err, room);
+				}
 			});
 		}, function(room, callback){
 			vschatHandler.removeMessage(room, req.params.mid, function(err, message){
@@ -87,9 +103,42 @@ function removeMessage(req, res){
 	});
 }
 
+function blockMember(req, res){
+	async.waterfall([
+		function(callback){
+			vschatHandler.getRoom(req.params.rid, function(err, room){
+				if(!err && !room){
+					return callback('vschat room was not found');
+				}else{
+					return callback(err, room);
+				}
+			});
+		},
+		function(room, callback){
+			userHandler.getUser(req.body.uid, function(err, user){
+				if(!err && !user){
+					return callback('user was not found');
+				}else{
+					return callback(err, room, user);
+				}
+			})
+		}, function(room, user, callback){
+			vschatHandler.blockMember(room, user, function(err, room){
+				return callback(err, room);
+			})
+		}], function(err, response){
+			if (err){
+	            errorHandler.handle(res, err);
+	        } else {
+	            responseBuilder.sendResponse(res, 200, response);
+	        };
+	});
+}
+
 module.exports = {
 	createRoom: createRoom,
 	addMessage: addMessage,
 	removeMessage: removeMessage,
-	getMessages: getMessages
+	getMessages: getMessages,
+	blockMember: blockMember
 }

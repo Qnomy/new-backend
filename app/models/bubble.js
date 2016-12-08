@@ -27,7 +27,7 @@ bubbleSchema.set('toJSON', {
     }
 });
 
-//bubbleSchema.index({ _geoContentId: 1 }, { unique: true });
+bubbleSchema.index({ _geoContentId: 1 }, { unique: true });
 bubbleSchema.index({ _owner: 1 }, { unique: false });
 
 var bubbleModel = mongoose.model('bubble', bubbleSchema); 

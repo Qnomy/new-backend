@@ -49,7 +49,8 @@ module.exports = function (app) {
     bubbleRouter.post('/:cid/block',verifyMiddleware, bubbleController.blockBubble);
 
     var vschatRouter = express.Router();
-    vschatRouter.post('/join', verifyMiddleware, vschatController.createRoom)
+    vschatRouter.post('/join', verifyMiddleware, vschatController.createRoom);
+    vschatRouter.post('/:rid/block', verifyMiddleware, vschatController.blockMember);
     vschatRouter.post('/:rid', verifyMiddleware, vschatController.addMessage);
     vschatRouter.delete('/:rid/:mid', verifyMiddleware, vschatController.removeMessage);
     vschatRouter.get('/:rid/:last?', verifyMiddleware, vschatController.getMessages);

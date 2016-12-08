@@ -26,17 +26,25 @@ function getRoom(room_id, cb){
 }
 
 function getMembersRoom(members, cb){
-	vsChatRoomModel.findOne({members:members},{messages:false}, function(err, room){
-		if(!room){
-			var room = new vsChatRoomModel({
-				members: members
+	vsChatRoomModel.findOne(
+		{$and:[{'members._user': members[0]}, {'members._user': members[1]}]},
+		{'members.$':1}, 
+		function(err, room){
+			if(!room){
+				room = new vsChatRoomModel({
+					members: [{
+						_user: members[0]
+					},{
+						_user: members[1]
+					}]
+				});
+			}
+			_.each(room.members, function(member){
+				member.active = true;
 			});
 			room.save(function(err){
 				return cb(err, room);
 			})
-		}else{
-			return cb(err, room);
-		}
 	});
 }
 
@@ -76,11 +84,39 @@ function removeMessage(room, mid, cb){
 	});
 }
 
+function getRoomWithMembers(room, cb){
+	vsChatRoomModel.findOne({_id:room._id})
+    .populate({path: 'members', populate: {path: '_user'}})
+    .exec(function(err, result){
+    	if(!err){
+    		cb(err, result);
+    	}else{
+    		cb(err);
+    	}
+    });
+}
+
+function blockMember(room, user, cb){
+	getRoomWithMembers(room, function(err, room){
+		var member = _.find(room.members, function(member){
+			return member._user._id.toString() == user._id
+		});
+		if(!member){
+			return cb('The user is not a member of this room');
+		};
+		member.active = false;
+		room.save(function(err){
+			cb(err, room);
+		});
+	});
+}
+
 module.exports = {
 	getRoom: getRoom,
 	getMembersRoom: getMembersRoom,
 	getMessage: getMessage,
 	addMessage: addMessage,
 	getMessages: getMessages,
-	removeMessage: removeMessage
+	removeMessage: removeMessage,
+	blockMember: blockMember
 }

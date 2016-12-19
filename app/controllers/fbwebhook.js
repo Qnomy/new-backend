@@ -5,6 +5,7 @@ var config = require('../config/config');
 var ContentHandler = require('../models/content');
 var UserHandler = require('../models/user');
 var SocialAccountHandler = require('../models/social_account');
+var logger = require('../util/logger');
 
 var output = module.exports;
 
@@ -20,6 +21,7 @@ output.get = function(req, res){
 };
 
 output.post = function(req, res){
+    logger.log('info', 'new update from facebook', JSON.stringify(req.body));
     async.waterfall([
         function(callback){
             var entries = req.body.entry;

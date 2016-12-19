@@ -20,6 +20,15 @@ var userActivitySchema = mongoose.Schema({
     body: schema.Types.Mixed
 });
 
+userActivitySchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+    }
+});
+
 /*indexes*/
 userActivitySchema.index({ actor: 1}, { unique: false});
 

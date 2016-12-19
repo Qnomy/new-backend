@@ -19,16 +19,19 @@ function getUser(req, res){
             });
         },
         function(user, callback){
-            socialAccountHandler.getUserAccounts(user._id, function(err, accounts){
-                var cloned = extend({accounts:accounts}, user);
-                return callback(err, cloned);
+            socialAccountHandler.getUserAccounts(user, function(err, accounts){
+                return callback(err, user, accounts);
             });
+        },function(user, accounts, callback){
+            var results = user.toJSON();
+            results.accounts = accounts;
+            callback(null, results);
         }
-    ],function (err, user){
+    ],function (err, results){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, user);
+            responseBuilder.sendResponse(res, 200, {user: results});
         };
     });
 };
@@ -55,27 +58,34 @@ function setUser(req, res){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, {uid: user.id});
+            responseBuilder.sendResponse(res, 200, {user: user});
         };
     });
 }
 
 function getSocialAccounts(req, res){
     async.waterfall([
-        function (callback){
-            userHandler.getUser(req.params.uid,function(err, user){
+        function(callback){
+            userHandler.getUser(req.params.uid, function(err, user){
                 if (!user){
                     callback({http_status: 404, message: "The user does not exist in our system."});
-                } else{
+                } else {
                     callback(err, user);
                 }
             });
+        },
+        function (user, callback){
+            socialAccountHandler.getUserAccounts(user,function(err, accounts){
+                    return callback(err, user, accounts);
+            });
         }
-    ],function (err, user){
+    ],function (err, user, accounts){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, user.accounts);
+            var response = user.toJSON();
+            response.accounts = accounts;
+            responseBuilder.sendResponse(res, 200, {user: response});
         };
     });
 };
@@ -92,15 +102,22 @@ function addSocialAccount(req, res){
             });
         },
         function(user, callback){
-            socialAccountHandler.save(user._id, req.body.type, req.body.social_id, req.body.token, function(err, response){
-                callback(err, response);
+            socialAccountHandler.save(user, req.body.type, req.body.social_id, req.body.token, function(err, response){
+                callback(err, user);
             });
+        },
+        function(user, callback){
+            socialAccountHandler.getUserAccounts(user, function(err, accounts){
+                callback(err, user, accounts);
+            })
         }
-    ],function (err, response){
+    ],function (err, user, accounts){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, null);
+            var response = user.toJSON();
+            response.accounts = accounts;
+            responseBuilder.sendResponse(res, 200, {user: response});
         };
     });
 };
@@ -125,7 +142,7 @@ function updateLocation(req, res){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, null);
+            responseBuilder.sendResponse(res, 200, {user: user});
         };
     });
 };

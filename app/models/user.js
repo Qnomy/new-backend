@@ -16,7 +16,6 @@ var userSchema = mongoose.Schema({
     last_login: { type: Date },
     active: {type: Boolean, default: true },
     role: {type: Number, default: 1 },
-    //cid: {type: String }, // Probably it has a credential id linked.
     loc: {
         type: {type: String, default: 'Point'},
         coordinates: {type: [Number], default: [0,0]}
@@ -25,8 +24,16 @@ var userSchema = mongoose.Schema({
 });
 
 userSchema.index({ phone_number: 1 }, { unique: true });
-userSchema.index({ phone_number: 1 ,"accounts.social_id": 1, "accounts.type": 1 }, { unique: true });
 userSchema.index({ "role": 1 });
+
+userSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+    }
+});
 
 /* Model definition */
 var userModel = mongoose.model('User', userSchema);

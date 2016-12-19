@@ -11,6 +11,9 @@ var transform = function(source, geoContent, cb){
 	async.waterfall([
 		function(callback){
 			fbAccountHandler.findSocialAccount(source.uid, function(err, account){
+				if(!err && !account){
+					err = "could not find account for " + source.uid;
+				}
 				return callback(err, account)
 			});
 		},

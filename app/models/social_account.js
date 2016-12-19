@@ -3,20 +3,20 @@ var config = require('../config/config');
 var async = require('async');
 var facebookAccountHandler = require('./social_account/facebook_account');
 
-function save(uid, type, social_id, token, cb){
+function save(user, type, social_id, token, cb){
     switch(parseInt(type)){
         case this.AccountTypes.Facebook:
-            return facebookAccountHandler.save(uid, social_id, token, cb)
+            return facebookAccountHandler.save(user, social_id, token, cb)
             break;
     }
 }
 
-function getUserAccounts(uid, cb){
+function getUserAccounts(user, cb){
     async.series([
         function(callback){ //BubbleYou
             callback(null, {bubbleyou:null})
         }, function(callback){ //Facebook
-            facebookAccountHandler.findUserAccount(uid, function(err, account){
+            facebookAccountHandler.findUserAccount(user, function(err, account){
                 return callback(err, {facebook:account});
             });
         }, function(callback, accounts){ //Twitter

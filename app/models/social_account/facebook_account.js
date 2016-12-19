@@ -3,10 +3,20 @@ var fbService = require('../../service/facebook');
 var async = require('async');
 
 var fbAccountSchema = mongoose.Schema({
-    uid: String,
+    uid: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     fbid: String,
     st_token: String,
     lt_token: {type: String, default: null },
+});
+
+fbAccountSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        delete ret._id;
+        delete ret.uid;
+        delete ret.__v;
+        return ret;
+    }
 });
 
 fbAccountSchema.index({ uid: 1 }, { unique: true });
@@ -14,13 +24,13 @@ fbAccountSchema.index({ uid: 1, fbid: 1, token: 1 }, { unique: true });
 
 var fbAccountModel = mongoose.model('fbAccount', fbAccountSchema);
 
-function save(uid, social_id, st_token, cb){
+function save(user, social_id, st_token, cb){
     async.waterfall([function(callback){
         fbService.generateLongTermAccessToken(st_token, function(err, lt_token){
             callback(err, lt_token);
         })
     }, function(lt_token, callback){
-        fbAccountModel.update({uid: uid}, {$set: {fbid: social_id, st_token:st_token, lt_token:lt_token}}, {upsert:true}, function(err, result){
+        fbAccountModel.update({uid: user._id}, {$set: {fbid: social_id, st_token:st_token, lt_token:lt_token}}, {upsert:true}, function(err, result){
             callback(err, result);
         });
     }], function(err, result){
@@ -40,8 +50,8 @@ function findSocialAccount(social_id, cb){
     });
 }
 
-function findUserAccount(uid, cb){
-	fbAccountModel.findOne({uid: uid}, function(err, account){
+function findUserAccount(user, cb){
+	fbAccountModel.findOne({uid: user._id}, function(err, account){
         cb(err, account);
     });
 }

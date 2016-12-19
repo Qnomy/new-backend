@@ -9,6 +9,16 @@ var userDeviceSchema = mongoose.Schema({
 	arn: String
 });
 
+userDeviceSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        delete ret._id;
+        delete ret.__v;
+        delete ret._user;
+        return ret;
+    }
+});
+
 userDeviceSchema.index({ _user: 1}, { unique: false});
 
 userDeviceModel = mongoose.model('user_device', userDeviceSchema);

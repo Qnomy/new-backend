@@ -5,6 +5,7 @@ var userDevice = require('../models/user_device');
 var logger = require('../util/logger');
 
 function createEndpoint(platform, token, cb){
+	return cb(null);
 	var platformArn = config.SNS.platformARN[platform];
 	var params = {
 		PlatformApplicationArn: platformARN,
@@ -19,6 +20,7 @@ function createEndpoint(platform, token, cb){
 }
 
 function getTopic(key, cb){
+	return cb(null);
 	return sns.createTopic({name:key}, function(err, topic){
 		if(err){
 			logger.error('error while trying to get SNS topic', err);
@@ -28,6 +30,7 @@ function getTopic(key, cb){
 }
 
 function subscribe(topic, social_account, cb){
+	return cb(null);
 	var params = {
 	  Protocol: 'application',
 	  TopicArn: topic.TopicArn,
@@ -42,6 +45,7 @@ function subscribe(topic, social_account, cb){
 }
 
 function publish(topic, subject, message, cb){
+	return cb(null);
 	var params = {
 		Subject: subject,
 		TopicArn: topic.TopicArn,
@@ -56,6 +60,7 @@ function publish(topic, subject, message, cb){
 }
 
 function sendNotification(notification, cb){
+	return cb(null);
 	logger.info('sending SNS notification ', notification);
 	this.getTopic(notification.key, function(err, topic){
 		if(!err){

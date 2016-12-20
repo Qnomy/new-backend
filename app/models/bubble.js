@@ -4,37 +4,62 @@ var config = require('../config/config');
 var async = require('async');
 var events = require('events');
 var contentHandler = require('./content');
-var bubbleMessageHandler = require('./bubble/bubble_message');
+var bubbleCommentHandler = require('./bubble/bubble_comment');
 var _ = require('underscore');
 
 var bubbleEmitter = new events.EventEmitter();
 
-var bubbleSchema = mongoose.Schema({
-    _geoContentId: {type: mongoose.Schema.Types.ObjectId, ref: 'GeoContent'},
-    _owner: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    members: [{_user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}, active: {type: Boolean, default: true}}],
-    _messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'bubble_message'}]
+var bubbleMemberSchema = mongoose.Schema({
+	_user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+	active: {type: Boolean, default: true}
 });
 
-bubbleSchema.virtual('messages_count').get(function(){
-	return this._messages.length;
+bubbleMemberSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+    	delete ret._id;
+    	ret.user = doc._user;
+    	delete ret._user;
+    	return ret;
+    }
+});
+
+var bubbleSchema = mongoose.Schema({
+    _geoContent: {type: mongoose.Schema.Types.ObjectId, ref: 'GeoContent'},
+    _owner: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    members: [bubbleMemberSchema],
+    _comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'bubble_comment'}]
+});
+
+bubbleSchema.virtual('comments_count').get(function(){
+	if(this._comments){
+		return this._comments.length
+	}else{
+		return undefined;
+	}
 });
 
 bubbleSchema.set('toJSON', {
     virtuals: true,
     transform: function(doc, ret, options){
-    	delete ret._messages;
+    	delete ret._id;
+    	delete ret.__v;
+    	ret.geoContent = doc._geoContent;
+    	delete ret._geoContent;
+    	delete ret._comments;
+    	ret.owner = doc._owner;
+    	delete ret._owner;
     	return ret;
     }
 });
 
-bubbleSchema.index({ _geoContentId: 1 }, { unique: true });
+bubbleSchema.index({ _geoContent: 1 }, { unique: true });
 bubbleSchema.index({ _owner: 1 }, { unique: false });
 
 var bubbleModel = mongoose.model('bubble', bubbleSchema); 
 
 function updateBubble(geoContentId, bubble, cb){
-	bubbleModel.update({_geoContentId: geoContentId}, bubble,{upsert: true}, function(err, bubble){
+	bubbleModel.update({_geoContent: geoContentId}, bubble,{upsert: true}, function(err, bubble){
 		cb(err, bubble);
 	});
 }
@@ -46,13 +71,13 @@ function getBubble(bubble_id, cb){
 }
 
 function getBubbleByGeoContentId(geoContentId, cb){
-	bubbleModel.findOne({_geoContentId: geoContentId}, function(err, bubble){
+	bubbleModel.findOne({_geoContent: geoContentId}, function(err, bubble){
 		if(err){
 			return cb(err);
 		}
 		if(!bubble){
 			var bubble = new bubbleModel();
-			bubble._geoContentId = geoContentId;
+			bubble._geoContent = geoContentId;
 			bubble.save(function(err){
 				return cb(err, bubble);
 			})
@@ -63,7 +88,7 @@ function getBubbleByGeoContentId(geoContentId, cb){
 }
 
 function joinBubble(bubble, user, cb){
-	getBubbleWithMembers(bubble, function(err, bubble){
+	getPopulatedBubble(bubble, function(err, bubble){
 		if(err){
 			return cb(err)
 		}else{
@@ -91,9 +116,11 @@ function joinBubble(bubble, user, cb){
 	});
 }
 
-function getBubbleWithMembers(bubble, cb){
+function getPopulatedBubble(bubble, cb){
 	bubbleModel.findOne({_id:bubble._id})
     .populate({path: 'members', populate: {path: '_user', select: 'display_name display_pic'}})
+    .populate('_owner', 'display_name display_pic')
+    .populate('_geoContent')
     .exec(function(err, result){
     	if(!err){
     		cb(err, result);
@@ -104,7 +131,7 @@ function getBubbleWithMembers(bubble, cb){
 }
 
 function getBubbleMembers(bubble, cb){
-	getBubbleWithMembers(bubble, function(err, bubble){
+	getPopulatedBubble(bubble, function(err, bubble){
 		if(!err){
     		return cb(err, bubble.members);
     	}else{
@@ -115,7 +142,7 @@ function getBubbleMembers(bubble, cb){
 
 function removeBubble(bubble, cb){
 	async.series([function(callback){
-		return bubbleMessageHandler.removeBubbleMessages(bubble,callback);
+		return bubbleCommentHandler.removeBubbleMessages(bubble,callback);
 	}, function(callback){
 		return bubble.remove(callback);
 	}], function(err, result){
@@ -125,7 +152,7 @@ function removeBubble(bubble, cb){
 
 function disconectBubble(bubble, cb){
 	async.waterfall([function(callback){
-		return contentHandler.getGeoContent(bubble._geoContentId, function(err, geoContent){
+		return contentHandler.getGeoContent(bubble._geoContent, function(err, geoContent){
 			callback(err, geoContent);
 		});
 	}, function(geoContent, callback){
@@ -142,7 +169,7 @@ function disconectBubble(bubble, cb){
 }
 
 function blockBubble(bubble, user, cb){
-	getBubbleWithMembers(bubble, function(err, bubble){
+	getPopulatedBubble(bubble, function(err, bubble){
 		if(err){
 			return cb(err);
 		}else{

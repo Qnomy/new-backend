@@ -1,6 +1,6 @@
 var contentHandler = require('../models/content');
 var bubbleHandler = require('../models/bubble');
-var bubbleMessageHandler = require('../models/bubble/bubble_message');
+var bubbleCommentHandler = require('../models/bubble/bubble_comment');
 var UserHandler = require('../models/user');
 var errorHandler = require('./error_handler');
 var responseBuilder = require("./response_builder");
@@ -31,7 +31,7 @@ function join(req, res){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, bubble);
+            responseBuilder.sendResponse(res, 200, {bubble: bubble});
         };
     });
 }
@@ -39,22 +39,25 @@ function join(req, res){
 function disconnect(req, res){
     async.waterfall([function(callback){
         bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
+           if(!err && !bubble){
+            err = "No bubble for this content found"
+           }
            return callback(err, bubble);
         });
     }, function(bubble, callback){
         bubbleHandler.disconectBubble(bubble, function(err, result){
-            return callback(err, result);
+            return callback(err, bubble, result);
         })
-    }],function(err, result){
+    }],function(err, bubble, result){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, result);
+            responseBuilder.sendResponse(res, 200, {bubble: bubble});
         };
     })
 }
 
-function getBubbleMessages(req, res){
+function getBubbleComments(req, res){
     async.waterfall([
         function(callback){
             bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
@@ -63,7 +66,7 @@ function getBubbleMessages(req, res){
         },
         function(bubble, callback){
         	if(req.params.last){
-        		bubbleMessageHandler.getBubbleMessage(req.params.last, function(err, last){
+        		bubbleCommentHandler.getBubbleComment(req.params.last, function(err, last){
 	                return callback(err, bubble, last);
 	            });
         	}else{
@@ -71,29 +74,29 @@ function getBubbleMessages(req, res){
         	}
         },
         function(bubble, last, callback){
-            bubbleMessageHandler.getBubbleMessages(bubble, last, req.params.limit, function(err, messages){
-                return callback(err, messages, bubble);
+            bubbleCommentHandler.getBubbleComments(bubble, last, req.params.limit, function(err, comments){
+                return callback(err, comments, bubble);
             })
         },
-        function(messages, bubble, callback){
+        function(comments, bubble, callback){
             bubbleHandler.getBubbleMembers(bubble, function(err, members){
-                callback(err, messages, members);
+                callback(err, comments, members);
             })
         }
-    ],function (err, messages, members){
+    ],function (err, comments, members){
         if (err){
             errorHandler.handle(res, err);
         } else {
             responseBuilder.sendResponse(res, 200, 
                 {
-                    'comments': messages,
+                    'comments': comments,
                     'members': members
             });
         };
     });
 }
 
-function addBubbleMessage(req, res){
+function addBubbleComment(req, res){
     async.waterfall([
         function (callback){
             bubbleHandler.getBubbleByGeoContentId(req.params.cid, function(err, bubble){
@@ -106,15 +109,15 @@ function addBubbleMessage(req, res){
             });
         },
         function(bubble, user, callback){
-            bubbleMessageHandler.addBubbleMessage(bubble, user, req.body.body, function(err, message){
-                callback(err, message);
+            bubbleCommentHandler.addBubbleComment(bubble, user, req.body.body, function(err, comment){
+                callback(err, comment);
             })
         }
-    ],function (err, bubble){
+    ],function (err, comment){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, bubble);
+            responseBuilder.sendResponse(res, 200, {comment: comment});
         };
     });
 }
@@ -132,15 +135,15 @@ function blockBubble(req, res){
             });
         },
         function(bubble, user, callback){
-            bubbleHandler.blockBubble(bubble, user, function(err, result){
-                callback(err, result);
+            bubbleHandler.blockBubble(bubble, user, function(err, bubble){
+                callback(err, bubble);
             })
         }
-    ],function (err, result){
+    ],function (err, bubble){
         if (err){
             errorHandler.handle(res, err);
         } else {
-            responseBuilder.sendResponse(res, 200, result);
+            responseBuilder.sendResponse(res, 200, {bubble: bubble});
         };
     });
 }
@@ -148,7 +151,7 @@ function blockBubble(req, res){
 module.exports = {
 	join: join,
     disconnect: disconnect,
-    getBubbleMessages: getBubbleMessages,
-    addBubbleMessage: addBubbleMessage,
+    getBubbleComments: getBubbleComments,
+    addBubbleComment: addBubbleComment,
     blockBubble: blockBubble
 }

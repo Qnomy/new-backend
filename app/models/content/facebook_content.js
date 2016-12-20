@@ -18,15 +18,6 @@ var transform = function(source, geoContent, cb){
 			});
 		},
 		function(account, callback){
-			if(!account.lt_token){
-				generateLongTermAccessToken(account, function(err, token){
-					return callback(err, account);
-				})
-			}else{
-				return callback(null, account);
-			}
-		},
-		function(account, callback){
 			var fields = source.changed_fields;
 		    var field = null;
 		    if(fields.length > 0){
@@ -52,7 +43,26 @@ var transform = function(source, geoContent, cb){
 	});
 };
 
+var getContentMessage = function(geoContent){
+	return geoContent.raw.message;
+}
+
+var getContentLink = function(geoContent){
+	return geoContent.raw.link;
+}
+
+var getContentImage = function(geoContent){
+	if(geoContent.raw.media && geoContent.raw.media.image){
+		return geoContent.raw.media.image;
+	}else{
+		return undefined;
+	}
+}
+
 module.exports = {
 	ObjectTypes: ObjectTypes,
+	getContentMessage: getContentMessage,
+	getContentImage:getContentImage,
+	getContentLink: getContentLink,
 	transform: transform
 }

@@ -1,7 +1,7 @@
 
 function collectActivityInfo(activity, cb){
-	var bubbleMessageHandler = require('../bubble/bubble_message');
-	bubbleMessageHandler.getBubbleMessage(activity.source_id, function(err, message){
+	var bubbleCommentHandler = require('../bubble/bubble_comment');
+	bubbleCommentHandler.getBubbleComment(activity.source_id, function(err, message){
 		if(!err && message){
 			activity.body = message;
 		}

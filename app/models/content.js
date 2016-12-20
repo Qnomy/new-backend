@@ -2,55 +2,82 @@ var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 var async = require('async');
 var socialAccountHandler = require('./social_account');
-var facebookContentHandler = require('./content/facebook_content');
-var defaultContentHandler = require('./content/default_content');
 var config = require('../config/config');
 
 var geoContentSchema = mongoose.Schema({
     source: Number,
-    source_id: String,
-    content: schema.Types.Mixed,
+    type: Number,
+    objectid: String,
+    raw: schema.Types.Mixed,
     loc: {
         type: {type: String, default: 'Point'}, 
         coordinates: {type: [Number], default: [0, 0]}    
 	},
     altitude: {type: Number, default: 0},
     created_date : {type: Date, default: Date.now},
-    uid: String,
-    _bubble: {type: mongoose.Schema.Types.ObjectId, ref: 'bubble'},
-    is_bubble: {type: Boolean, default: false}
+    _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    _bubble: {type: mongoose.Schema.Types.ObjectId, ref: 'bubble'}
+});
+
+geoContentSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        delete ret._id;
+        ret.bubble = doc._bubble;
+        delete ret._bubble;
+        ret.user = doc._user;
+        delete ret._user;
+        return ret;
+    }
+});
+
+geoContentSchema.virtual('is_bubble').get(function(){
+    return this._bubble != null;
+});
+
+geoContentSchema.virtual('message').get(function(){
+    var socialContentHandler = getSocialContentHandler(this.source);
+    return socialContentHandler.getContentMessage(this);
+});
+
+geoContentSchema.virtual('link').get(function(){
+    var socialContentHandler = getSocialContentHandler(this.source);
+    return socialContentHandler.getContentLink(this);
+});
+
+geoContentSchema.virtual('image').get(function(){
+    var socialContentHandler = getSocialContentHandler(this.source);
+    return socialContentHandler.getContentImage(this);
 });
 
 /*indexes*/
-geoContentSchema.index({ uid: 1, source: 1 }, { unique: false});
+geoContentSchema.index({ _user: 1, source: 1 }, { unique: false});
 
 /* Model definition */
 var geoContentModel = mongoose.model('GeoContent', geoContentSchema);
 
-function transform(content, type, cb){
+function getSocialContentHandler(source){
     var socialContentHandler = null;
-    switch(type){
+    switch(source){
         case socialAccountHandler.AccountTypes.Facebook:
-            socialContentHandler = facebookContentHandler;
+            socialContentHandler = require('./content/facebook_content');
             break;
         default:
-            socialContentHandler = defaultContentHandler;
+            socialContentHandler = require('./content/default_content');
             break;
     }
+    return socialContentHandler;
+}
+
+function transform(raw, type, cb){
+    var socialContentHandler = getSocialContentHandler(type);
     var geoContent = new geoContentModel();
     geoContent.source = type;
-    return socialContentHandler.transform(content, geoContent, cb);
+    return socialContentHandler.transform(raw, geoContent, cb);
 }
 
 function updateGeoContent(geoContent, cb){
-    geoContentModel.update({source_id: geoContent.source_id}, {$set:{
-        source: geoContent.source,
-        source_id: geoContent.source_id,
-        content: geoContent.content,
-        loc: geoContent.loc,
-        altitude: geoContent.altitude,
-        uid: geoContent.uid
-    }}, {upsert: true}, function(err, result){
+    geoContentModel.update({objectid: geoContent.objectid}, geoContent, {upsert: true}, function(err, result){
         return cb(err, result);
     });
 }
@@ -68,7 +95,6 @@ function joinGeoContentBubble(geoContent, user, cb){
             })
         }, function(bubble, callback){
             geoContent._bubble = bubble._id;
-            geoContent.is_bubble = true;
             geoContent.save(function(err){
                 callback(err, bubble);
             })
@@ -78,8 +104,7 @@ function joinGeoContentBubble(geoContent, user, cb){
 }
 
 function disconnectGeoContentBubble(geoContent, cb){
-    geoContent._bubble = null;
-    geoContent.is_bubble = false;
+    geoContent._bubble = undefined;
     return geoContent.save(cb);
 }
 
@@ -92,7 +117,11 @@ function geoSearch(lng, lat, distance, limit, last, cb){
             }
         }
     };
-    var query = geoContentModel.find(criteria).populate('_bubble');
+    var query = geoContentModel.find(criteria)
+    .populate({path: '_bubble', populate: {path: 'members', populate:{path:'_user', select: 'display_name display_pic'}}})
+    .populate({path: '_bubble', populate: {path: '_owner', select: 'display_name display_pic'}})
+    .populate({path: '_bubble', populate: {path: '_geoContent'}})
+    .populate('_user', 'display_name display_pic');
     query.limit(limit || config.rest_api.page_limit);
     query.sort('-created_date');
     if(last){

@@ -1,6 +1,6 @@
 var userActivityHandler = require('../models/user_activity');
 var bubbleHandler = require('../models/bubble');
-var bubbleMessageHandler = require('../models/bubble/bubble_message');
+var bubbleCommentHandler = require('../models/bubble/bubble_comment');
 var logger = require('../util/logger');
 
 bubbleHandler.emitter.on('join', function(bubble, user){
@@ -10,10 +10,10 @@ bubbleHandler.emitter.on('join', function(bubble, user){
 		user);
 });
 
-bubbleMessageHandler.emitter.on('comment', function(message, user){
+bubbleCommentHandler.emitter.on('comment', function(comment, user){
 	createActivity(
 		userActivityHandler.ActivityTypes.bubbleComment, 
-		message,
+		comment,
 		user);
 });
 

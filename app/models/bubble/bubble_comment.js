@@ -48,7 +48,6 @@ function getBubbleComments(bubble, last, limit, cb){
 	query.limit(limit || config.rest_api.page_limit);
 	query
 	.populate('_from', 'display_name display_pic')
-	.populate('_bubble');
 	query.exec(function(err, results){
 		cb(err, results);
 	});

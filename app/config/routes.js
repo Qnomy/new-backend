@@ -60,6 +60,8 @@ module.exports = function (app) {
 
     var instagramRouter = express.Router();
     instagramRouter.get('/auth/:uid', instagramController.handleAuth);
+    instagramRouter.get('/verify', instagramController.verifySubscription);
+    instagramRouter.post('/log', instagramController.logActivity);
 
     app.use('',statusController);
     app.use('/v1/auth',authRouter);

@@ -1,7 +1,7 @@
 var errorHandler = require('./error_handler');
 var responseBuilder = require('./response_builder');
 var igAccountHandler = require('../models/social_account/instagram_account');
-var async = require('async');
+var async = require('async');git 
 
 var handleAuth = function(req, res){
 	if(req.params.error){
@@ -34,6 +34,16 @@ var handleAuth = function(req, res){
 	}
 }
 
+var verifySubscription = function(req, res){
+
+}
+
+var logActivity = function(req, res){
+
+}
+
 module.exports = {
-	handleAuth: handleAuth
+	handleAuth: handleAuth,
+	verifySubscription: verifySubscription,
+	logActivity: logActivity
 }

@@ -22,7 +22,7 @@ fbAccountSchema.set('toJSON', {
 });
 
 fbAccountSchema.index({ _user: 1 }, { unique: true });
-fbAccountSchema.index({ _user: 1, fbid: 1, token: 1 }, { unique: true });
+fbAccountSchema.index({ fbid: 1 }, { unique: true });
 
 var fbAccountModel = mongoose.model('fbAccount', fbAccountSchema);
 

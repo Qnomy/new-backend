@@ -106,6 +106,11 @@ module.exports = {
         },
         post_fields: ['created_time', 'from', 'link', 'message', 'object_id', 'attachments', 'place', 'privacy']
     },
+    instagram:{
+        client_id: "",
+        client_secret: "",
+        redirect_url_base: "http://dev.bubbleyou.com/instagram"
+    },
     logger: {
         errorFile: 'logs/error.log',
         infoFile: 'logs/info.log',

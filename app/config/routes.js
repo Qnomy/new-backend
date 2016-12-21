@@ -22,7 +22,6 @@ module.exports = function (app) {
 
     /* field dependencies */
     var authRouter = express.Router();
-
     authRouter.post('/register', authController.register);
     authRouter.post('/verify', authController.verify);
 
@@ -59,6 +58,9 @@ module.exports = function (app) {
     fbWebhookRouter.get('/callback', fbWebhookController.get);
     fbWebhookRouter.post('/callback', fbWebhookController.post);
 
+    var instagramRouter = express.Router();
+    instagramRouter.get('/auth/:uid', instagramController.handleAuth);
+
     app.use('',statusController);
     app.use('/v1/auth',authRouter);
     app.use('/v1/user', userRouter);
@@ -67,4 +69,5 @@ module.exports = function (app) {
     app.use('/v1/bubble', bubbleRouter);
     app.use('/v1/vschat', vschatRouter);
     app.use('/v1/fbwebhook',fbWebhookRouter);
+    app.use('/v1/instagram',instagramRouter);
 };

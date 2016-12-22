@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var igService = require('../services/instagram');
+var igService = require('../../service/instagram');
 var async = require('async');
 var ObjectId = require('mongodb').ObjectID;
 

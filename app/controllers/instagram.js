@@ -1,7 +1,8 @@
 var errorHandler = require('./error_handler');
 var responseBuilder = require('./response_builder');
+var userHandler = require('../models/user');
 var igAccountHandler = require('../models/social_account/instagram_account');
-var async = require('async');git 
+var async = require('async');
 
 var handleAuth = function(req, res){
 	if(req.params.error){
@@ -25,17 +26,19 @@ var handleAuth = function(req, res){
 					callback(err, account);
 				});
 			}], function(err, account){
-				if (err){
-	            	return errorHandler.handle(res, err);
-		        } else {
-		            return responseBuilder.sendResponse(res, 200, {account: account});
-		        };
+				
 			});
 	}
 }
 
 var verifySubscription = function(req, res){
-
+	if(req.params.hub 
+		&& req.params.hub.mode == 'subscribe'
+		&& req.params.hub.verify_token == config.instagram.verify_token){
+			return responseBuilder.sendResponse(res, 200, req.params.hub.challenge);
+	}else{
+		return errorHandler.handle(res, 'verification error');
+	}
 }
 
 var logActivity = function(req, res){

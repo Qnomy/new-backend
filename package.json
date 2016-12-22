@@ -1,5 +1,5 @@
 {
-  "name": "bubelu",
+  "name": "bulla",
   "version": "1.1.0",
   "private": true,
   "author": "ytuvia@gmail.com",
@@ -19,7 +19,7 @@
     "express-winston": "~2.1.0",
     "fb": "~1.1.1",
     "hat": "0.0.3",
-    "instagram-node": "^0.5.8",
+    "inodesta": "^1.0.0",
     "jsonschema": "1.0.2",
     "jsonwebtoken": "5.5.4",
     "kafka-node": "0.2.29",

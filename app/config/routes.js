@@ -11,6 +11,7 @@ var contentController = require('../controllers/content/content');
 var bubbleController = require('../controllers/bubble');
 var vschatController = require('../controllers/vschat');
 var fbWebhookController = require('../controllers/fbwebhook');
+var instagramController = require('../controllers/instagram');
 
 var statusController = require('../controllers/status');
 
@@ -59,7 +60,7 @@ module.exports = function (app) {
     fbWebhookRouter.post('/callback', fbWebhookController.post);
 
     var instagramRouter = express.Router();
-    instagramRouter.get('/auth/:uid', instagramController.handleAuth);
+    instagramRouter.get('/auth', instagramController.handleAuth);
     instagramRouter.get('/verify', instagramController.verifySubscription);
     instagramRouter.post('/log', instagramController.logActivity);
 
